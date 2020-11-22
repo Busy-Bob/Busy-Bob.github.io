@@ -1,0 +1,239 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title> Rust 异步并发（一） | 勺海的个人博客</title>
+<link rel="shortcut icon" href="https://Busy-Bob.github.io/favicon.ico?v=1606075688819">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://Busy-Bob.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title=" Rust 异步并发（一） | 勺海的个人博客 - Atom Feed" href="https://Busy-Bob.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="前一段时间看了一些关于Rust的异步编程相关的知识，受益匪浅，故做此记录。
+Rust异步编程是Rust语言中十分重要特性。现在Rust中的异步编程采用async/.await解决方案。
+
+1. 为什么需要异步编程？
+刚开始一直有一个疑问：既..." />
+    <meta name="keywords" content="rust,异步编程" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://Busy-Bob.github.io">
+  <img class="avatar" src="https://Busy-Bob.github.io/images/avatar.png?v=1606075688819" alt="">
+  </a>
+  <h1 class="site-title">
+    勺海的个人博客
+  </h1>
+  <p class="site-description">
+    尽应尽之事，做让自己开心的事。
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          文章
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Busy-Bob" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+               Rust 异步并发（一）
+            </h2>
+            <div class="post-info">
+              <span>
+                2020-11-22
+              </span>
+              <span>
+                4 min read
+              </span>
+              
+                <a href="https://Busy-Bob.github.io/tag/PUCwH47Rx/" class="post-tag">
+                  # rust
+                </a>
+              
+                <a href="https://Busy-Bob.github.io/tag/hDYBWTXHUV/" class="post-tag">
+                  # 异步编程
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <p>前一段时间看了一些关于Rust的异步编程相关的知识，受益匪浅，故做此记录。<br>
+Rust异步编程是Rust语言中十分重要特性。现在Rust中的异步编程采用<code>async/.await</code>解决方案。</p>
+<!-- more -->
+<h1 id="1-为什么需要异步编程">1. 为什么需要异步编程？</h1>
+<p>刚开始一直有一个疑问：<strong>既然已经有了多线程技术，多用户访问直接使用多线程，为什么还需要异步呢？</strong> 后来终于明白，异步是用在多用户<strong>同时处理同一资源</strong>时候发挥作用的。</p>
+<pre><code>现在用100个用户同时修改一个文件来举例：
+</code></pre>
+<ul>
+<li>
+<p><strong>同步</strong>(一般也是<strong>阻塞</strong>)： 程序需要实现<strong>读写锁(<code>std::sync::RwLock</code>)<strong>或</strong>互斥锁(<code>std::sync::Mutex</code>)</strong>，程序会同时产生100个线程，但是只能有一个线程拥有写锁，其他的99个线程均</p>
+<ul>
+<li>处于<strong>等待状态</strong>，线程不会sleep，会循环获取锁(自旋锁Spinlock)。
+<ul>
+<li>阻塞的线程还来参与操作系统的抢占式调度，很不科学！为什么不先排好队，用一个线程呢（这也是协程干的事）</li>
+</ul>
+</li>
+<li>或者有起始的<strong>加锁开销</strong>(通常是对互斥锁：①线程会从sleep（加锁）——&gt;running（解锁），过程中有上下文的切换，cpu的抢占，信号的发送等开销；②互斥锁在sleep时会陷入到内核态，需要昂贵的系统调用；线程向操作系统请求被挂起是通过一个系统调用，在linux上的实现就是futex)。</li>
+</ul>
+</li>
+<li>
+<p><strong>异步</strong>(一般也是<strong>非阻塞</strong>)： 将100个线程根据一定的先后次序<strong>合并成一个线程</strong>(也可能是多个线程？)， 就可以避免锁的产生，从而减少操作系统对线程调用的开销。但是，当线程之间对资源的依赖关系比较复杂的时候，程序的编写就会<strong>十分复杂</strong>。</p>
+<ul>
+<li><strong>协程</strong>(coroutine)： 实现异步编程的一种方式，是在线程之下的一个单位。协程是语言层面控制数据流的一种“调度”（处理公共资源的时候，相当于<strong>用户态的锁</strong>）， 线程是操作系统层面的“调度”（处理公共资源，使用<strong>操作系统或者硬件的锁(即Mutex或者Spinlock)</strong>）。协程的调度是编译器通过组织运算顺序实现的（通过生成器（等同于一个状态机）实现），线程是通过操作系统来进行抢占式调度的。</li>
+<li><a href="https://zh.wikipedia.org/wiki/%E5%8D%8F%E7%A8%8B">协程wiki</a>：协程非常类似于线程。但是协程是协作式多任务的，而线程典型是抢占式多任务的。这意味着协程提供并发性而非并行性。协程超过线程的好处是它们可以用于硬性实时的语境（在协程之间的切换不需要涉及任何系统调用或任何阻塞调用），这里不需要用来守卫关键区块的同步性原语（primitive）比如互斥锁、信号量等，并且不需要来自操作系统的支持。</li>
+<li><a href="https://www.zhihu.com/question/332113890/answer/1052024052">互斥锁（mutex）的底层原理是什么？</a></li>
+<li><a href="https://www.zhihu.com/question/50185085/answer/1342613525">出于什么样的原因，诞生了「协程」这一概念？</a></li>
+</ul>
+</li>
+</ul>
+<p>所以，异步编程是可以直接用复杂的代码结构直接写出来的。比如上面的例子就是在一个线程里面去依次读写100次。而Rust的<code>async/.await</code>解决方案做的工作是 <strong>“将复杂的异步代码 ===&gt; 利用语法糖 ===&gt; 转化为类似于同步的代码(更容易coding)”</strong>  即 <strong>“用同步的语义解决异步问题”</strong> 。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%BC%82%E6%AD%A5%E7%BC%96%E7%A8%8B">1. 为什么需要异步编程？</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://Busy-Bob.github.io/post/2020112-yi-shi/">
+              <h3 class="post-title">
+                2020.11.22 伊始
+              </h3>
+            </a>
+          </div>
+        
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: 'e32c230de13db368ea78',
+    clientSecret: '80f8c1d8fb3370a0c9df34a96b46d0d083867ac7',
+    repo: 'Busy-Bob.github.io',
+    owner: 'Busy-Bob',
+    admin: ['Busy-Bob'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+        <div class="site-footer">
+  
+  <a class="rss" href="https://Busy-Bob.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
