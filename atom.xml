@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://Busy-Bob.github.io</id>
     <title>勺海的博客</title>
-    <updated>2020-11-24T02:12:33.138Z</updated>
+    <updated>2020-11-24T04:04:01.103Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://Busy-Bob.github.io"/>
     <link rel="self" href="https://Busy-Bob.github.io/atom.xml"/>
@@ -200,7 +200,7 @@ help: consider adding a `where` bound for this expression
 <li>另外一点，泛型中的const是调用一个const fn得到的时候，这个时候需要打大括号，如：<code>Quantity&lt;{ UL.unit_mul(UR) }&gt;</code> ，否则也会出错。这在最近的<a href="https://github.com/rust-lang/rust/pull/79135">Stabilization report</a>里面也有提到。</li>
 </ul>
 <blockquote>
-<h2 id="const-arguments">Const arguments</h2>
+<p><strong>Const arguments</strong></p>
 <p>Const parameters are instantiated using const arguments. Any concrete const expression or const parameter as a standalone argument can be used. When applying an expression as const parameter, <strong>most expressions must be contained within a block</strong>, with two exceptions:</p>
 <ol>
 <li>literals and single-segment path expressions</li>
