@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://Busy-Bob.github.io</id>
     <title>勺海的博客</title>
-    <updated>2020-11-30T11:58:22.062Z</updated>
+    <updated>2020-12-01T08:14:15.276Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://Busy-Bob.github.io"/>
     <link rel="self" href="https://Busy-Bob.github.io/atom.xml"/>
@@ -10,6 +10,131 @@
     <logo>https://Busy-Bob.github.io/images/avatar.png</logo>
     <icon>https://Busy-Bob.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, 勺海的博客</rights>
+    <entry>
+        <title type="html"><![CDATA[Rust 错误处理中多种类型Error传播的处理方式]]></title>
+        <id>https://Busy-Bob.github.io/post/rust-cuo-wu-chu-li-zhong-duo-lei-xing-error-chu-li-fang-shi/</id>
+        <link href="https://Busy-Bob.github.io/post/rust-cuo-wu-chu-li-zhong-duo-lei-xing-error-chu-li-fang-shi/">
+        </link>
+        <updated>2020-12-01T07:27:56.000Z</updated>
+        <summary type="html"><![CDATA[<p>有两种方式来聚合多种类型的Error来进行函数间的传播：一种是使用<code>Box&lt;dyn std::error::Error&gt;</code>来用trait object来代表所有类型的错误；另一种是使用自定义的<code>enum</code>来装所有的错误。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>有两种方式来聚合多种类型的Error来进行函数间的传播：一种是使用<code>Box&lt;dyn std::error::Error&gt;</code>来用trait object来代表所有类型的错误；另一种是使用自定义的<code>enum</code>来装所有的错误。</p>
+<!-- more -->
+<p>主要参考：<a href="https://rustcc.cn/article?id=75dbd87c-df1c-4000-a243-46afc8513074">细说Rust错误处理</a> 和 <a href="https://kaisery.github.io/trpl-zh-cn/ch09-02-recoverable-errors-with-result.html">Result 与可恢复的错误</a>.</p>
+<h1 id="tl-dr">TL; DR</h1>
+<ul>
+<li><code>Box&lt;dyn std::error::Error&gt;</code> 通常用在不对错误进行恢复的时候。（不容易检测到错误类型）</li>
+<li>自定义一个<code>enum</code>通常用在需要对错误进行恢复的时候。（容易检测类型）</li>
+</ul>
+<h1 id="boxdyn-error-方式来聚合error"><code>Box&lt;dyn Error&gt;</code> 方式来聚合Error</h1>
+<pre><code class="language-rust">fn do_something() -&gt; std::result::Result&lt;(),Box&lt;dyn std::error::Error&gt;&gt;{
+    let path = &quot;./dat&quot;;
+    let v = std::fs::read_to_string(path)?;
+    let x = std::str::from_utf8(v.as_bytes())?;
+    let u = x.parse::&lt;u32&gt;()?;
+    println!(&quot;num:{:?}&quot;,u);
+    Ok(())
+}
+</code></pre>
+<p>三者分别返回不同的错误类型，但是都可以用<code>Box&lt;dyn std::error::Error&gt;</code>来装。</p>
+<ul>
+<li><strong>优点</strong>： 方便书写。</li>
+<li><strong>缺点</strong>： 在传递后该Result后，该trait object 对应的实际的错误类型难以确定，应该需要用“<strong>反射</strong>”( <code>Any</code> trait)才能够确定。而不能直接match。</li>
+</ul>
+<h1 id="利用-enum-来聚合error">利用 <code>enum</code> 来聚合Error</h1>
+<blockquote>
+<p>内容来自<a href="https://rustcc.cn/article?id=75dbd87c-df1c-4000-a243-46afc8513074">细说Rust错误处理</a></p>
+</blockquote>
+<p>自定义一个<code>error</code>需要实现如下几步：</p>
+<ul>
+<li>手动实现impl <code>std::fmt::Display</code>的trait,并<strong>实现</strong> <code>fmt(...)</code>方法。</li>
+<li>手动实现impl <code>std::fmt::Debug</code>的<code>trait</code>，一般直接添加注解即可：<code>#[derive(Debug)]</code></li>
+<li>手动实现impl <code>std::error::Error</code>的<code>trait</code>,并根据自身<code>error</code>级别是否<strong>覆盖</strong><code>std::error::Error</code>中的<code>source()</code>方法。</li>
+</ul>
+<p>下面的内容中：</p>
+<ul>
+<li><code>CustomError</code>为我们实现的<strong>自定义Error</strong></li>
+<li><code>CustomError</code>有三个<strong>子类型Error</strong></li>
+<li><code>CustomError</code>分别实现了三个<strong>子类型Error</strong> <code>From</code>的trait,将其类型包装为<strong>自定义Error</strong>的子类型</li>
+</ul>
+<p>好了，有了自定义的<code>CustomError</code>，那怎么使用呢? 我们看代码：</p>
+<pre><code class="language-rust">use std::io::Error as IoError;
+use std::str::Utf8Error;
+use std::num::ParseIntError;
+use std::fmt::{Display, Formatter};
+
+
+fn main() -&gt; std::result::Result&lt;(),CustomError&gt;{
+    let path = &quot;./dat&quot;;
+    let v = read_file(path)?;
+    let x = to_utf8(v.as_bytes())?;
+    let u = to_u32(x)?;
+    println!(&quot;num:{:?}&quot;,u);
+    Ok(())
+}
+
+///读取文件内容
+fn read_file(path: &amp;str) -&gt; std::result::Result&lt;String, std::io::Error&gt; {
+    std::fs::read_to_string(path)
+}
+
+/// 转换为utf8内容
+fn to_utf8(v: &amp;[u8]) -&gt; std::result::Result&lt;&amp;str, std::str::Utf8Error&gt; {
+    std::str::from_utf8(v)
+}
+
+/// 转化为u32数字
+fn to_u32(v: &amp;str) -&gt; std::result::Result&lt;u32, std::num::ParseIntError&gt; {
+    v.parse::&lt;u32&gt;()
+}
+
+
+#[derive(Debug)]
+enum CustomError {
+    ParseIntError(std::num::ParseIntError),
+    Utf8Error(std::str::Utf8Error),
+    IoError(std::io::Error),
+}
+impl std::error::Error for CustomError{
+    fn source(&amp;self) -&gt; Option&lt;&amp;(dyn std::error::Error + 'static)&gt; {
+        match &amp;self {
+            CustomError::IoError(ref e) =&gt; Some(e),
+            CustomError::Utf8Error(ref e) =&gt; Some(e),
+            CustomError::ParseIntError(ref e) =&gt; Some(e),
+        }
+    }
+}
+
+impl Display for CustomError{
+    fn fmt(&amp;self, f: &amp;mut Formatter&lt;'_&gt;) -&gt; std::fmt::Result {
+        match &amp;self {
+            CustomError::IoError(ref e) =&gt; e.fmt(f),
+            CustomError::Utf8Error(ref e) =&gt; e.fmt(f),
+            CustomError::ParseIntError(ref e) =&gt; e.fmt(f),
+        }
+    }
+}
+
+impl From&lt;ParseIntError&gt; for CustomError {
+    fn from(s: std::num::ParseIntError) -&gt; Self {
+        CustomError::ParseIntError(s)
+    }
+}
+
+impl From&lt;IoError&gt; for CustomError {
+    fn from(s: std::io::Error) -&gt; Self {
+        CustomError::IoError(s)
+    }
+}
+
+impl From&lt;Utf8Error&gt; for CustomError {
+    fn from(s: std::str::Utf8Error) -&gt; Self {
+        CustomError::Utf8Error(s)
+    }
+}
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Rust 基于回调的异步方法分析]]></title>
         <id>https://Busy-Bob.github.io/post/rust-ji-yu-hui-diao-de-yi-bu-fang-fa-fen-xi_/</id>
