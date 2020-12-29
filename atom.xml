@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://Busy-Bob.github.io</id>
     <title>勺海的博客</title>
-    <updated>2020-12-01T08:15:22.296Z</updated>
+    <updated>2020-12-29T15:21:30.026Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://Busy-Bob.github.io"/>
     <link rel="self" href="https://Busy-Bob.github.io/atom.xml"/>
@@ -10,6 +10,40 @@
     <logo>https://Busy-Bob.github.io/images/avatar.png</logo>
     <icon>https://Busy-Bob.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, 勺海的博客</rights>
+    <entry>
+        <title type="html"><![CDATA[NAND Flash, NOR Flash 的区别和应用]]></title>
+        <id>https://Busy-Bob.github.io/post/nand-flash-nor-flash/</id>
+        <link href="https://Busy-Bob.github.io/post/nand-flash-nor-flash/">
+        </link>
+        <updated>2020-12-29T14:06:01.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="flash-原理">Flash 原理：</h2>
+<p><img src="https://Busy-Bob.github.io/post-images/1609254997519.png" alt="" loading="lazy"><br>
+<img src="https://Busy-Bob.github.io/post-images/1609253806308.png" alt="" loading="lazy"><br>
+参考<a href="https://www.youtube.com/watch?v=aO_kBa9DzPQ">youtube</a>。在控制栅极高电压时候，源极漏极之间导通，电子会穿过绝缘层往控制栅极走（电子从负极走向正极），控制栅极恢复后电子困在里面，表现出0。如果只需要一个page中的某一个小单元从1-&gt;0, 那么除了对该page的纵向线加高电压，也需要对其他单元的横向线加高电压，使得其他地方电子不往控制栅极走。</p>
+<h2 id="nand-flash-和-nor-flash-区别">NAND Flash 和 NOR Flash 区别</h2>
+<figure data-type="image" tabindex="1"><img src="https://Busy-Bob.github.io/post-images/1609253097307.png" alt="" loading="lazy"></figure>
+<ul>
+<li><strong>NAND 不能够取指令（类似于硬盘）</strong></li>
+<li><strong>NOR 可以取指令（类似于内存）</strong></li>
+</ul>
+<p>由于CPU运行时候需要三步：<strong>取指、译码、执行</strong> 三个步骤。由于 NOR的地址线和数据线分开，它可以按“字节”读写数据，符合 CPU 的指令译码执行要求，所以假如 NOR上存储了代码指令， CPU 给 NOR一个地址， NOR 就能向CPU 返回一条指令让 CPU 执行，中间不需要额外的处理操作。所以NOR Flash是可以用于执行的，即支持XIP(eXecute In Place) 。</p>
+<h2 id="应用场景">应用场景</h2>
+<ul>
+<li><strong>NOR Flash 小容量，具备随机访问能力，可执行。（用于执行片上程序，BIOS）</strong></li>
+<li><strong>NAND Flash 大容量，不具备随机访问能力。（SSD，U盘等）</strong></li>
+</ul>
+<h2 id="ssd和u盘区别">SSD和U盘区别</h2>
+<blockquote>
+<p>储存介质不一样：固态硬盘用的储存芯片价格远远高于U盘用的<br>
+主控芯片不一样：把芯片的读写模式安排好是主控芯片的事，U盘基本上在这个上面没做什么<br>
+存储模式不一样：固态硬盘是多芯片组成，在读书时，在主控的安排下，通常都能多路并发<br>
+接口模式不一样：固态硬盘的接口丰富，不管哪个接口，都比USB快</p>
+<p>作者：李诗华<br>
+链接：https://www.zhihu.com/question/265335741/answer/292414149<br>
+来源：知乎</p>
+</blockquote>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Rust 错误处理中多种类型Error传播的处理方式]]></title>
         <id>https://Busy-Bob.github.io/post/rust-cuo-wu-chu-li-zhong-duo-lei-xing-error-chu-li-fang-shi/</id>
