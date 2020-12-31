@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://Busy-Bob.github.io</id>
     <title>勺海的博客</title>
-    <updated>2020-12-31T08:36:36.808Z</updated>
+    <updated>2020-12-31T10:25:04.628Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://Busy-Bob.github.io"/>
     <link rel="self" href="https://Busy-Bob.github.io/atom.xml"/>
@@ -81,29 +81,29 @@
 <p><em>当需要扩展超过 54 个引脚的时候可以用 EMIO，而当 PL 中实现了一个 IP 包的时候，这也是 PS 和 PL 中的IP 包接口的一种方法(即<strong>PS可以利用EMIO和PL进行通信</strong>)</em></p>
 </blockquote>
 <ul>
-<li>**PL (Programmable Logic) 和 PS的通信接口 **
-<ul>
 <li>
-<p>AXI4：  通过一簇高达256 个数据字（或“ 数据拍（data beats）”）的数据传输来给定一个地址。</p>
-</li>
-<li>
-<p>AXI4_LITE： 只支持每次连接传输一个数据（非批量）。</p>
-</li>
-<li>
-<p>AXI4-Stream： 用于高速流数据，支持批量传输无限大小的数据。没有地址机制，这种总线类型最适合源和目的地之间的直接数据流。<br>
+<p>**PL (Programmable Logic) 和 PS的通信接口 **<br>
 <img src="https://Busy-Bob.github.io/post-images/1609403066047.png" alt="" loading="lazy"></p>
-</li>
-<li>
-<p><strong>通用AXI（General Purpose AXI）</strong>： 一共有四个，对应图中主机互联和从机互联。32 位数据总线，适合PL 和PS 之间的<strong>中低速通信</strong>。接口是透传的不带缓冲。</p>
-</li>
-<li>
-<p><strong>加速器一致性端口（Accelerator Coherency Port）</strong>： 在PL 和APU 内的SCU之间的单个异步连接，总线宽度为64 位。这个端口用来实现APU cache 和PL的单元之间的一致性（直接和PS中的APU相连）</p>
-</li>
-<li>
-<p><strong>高性能端口（High Performance Ports）</strong>： 带有FIFO缓冲来提供“ 批量” 读写操作，并支持PL 和PS 中的存储器单元的高速率通信。数据宽度是32 或64 位，在所有四个接口中PL 都是做主机的。</p>
-</li>
+<ul>
+<li><strong>通用AXI（General Purpose AXI）</strong>： 一共有四个，对应图中主机互联和从机互联。32 位数据总线，适合PL 和PS 之间的<strong>中低速通信</strong>。接口是透传的不带缓冲。</li>
+<li><strong>加速器一致性端口（Accelerator Coherency Port）</strong>： 在PL 和APU 内的SCU之间的单个异步连接，总线宽度为64 位。这个端口用来实现APU cache 和PL的单元之间的一致性（直接和PS中的APU相连）</li>
+<li><strong>高性能端口（High Performance Ports）</strong>： 带有FIFO缓冲来提供“ 批量” 读写操作，并支持PL 和PS 中的存储器单元的高速率通信。数据宽度是32 或64 位，在所有四个接口中PL 都是做主机的。<strong>(PL直接从DDR中获取数据)</strong></li>
+<li><strong>EMIO</strong>： 原本是用来连接I2C等协议的外设，也可以给PS使用。</li>
 </ul>
 </li>
+</ul>
+<h1 id="pynq中python类对应">PYNQ中python类对应：</h1>
+<ul>
+<li><strong>GPIO</strong>： 对应MIO， EMIO。（类似于单片机中的GPIO）</li>
+<li><strong>MMIO</strong>： 对应GP AXI，即通用AXI端口。（调用IP核，PS给PL数据时候用）</li>
+<li><strong>Xlnk</strong>： 对应HP AXI，访问DDR内存，即高性能AXI端口。（访问PS 的 DRAM， 用以PL需要内存时候，PS分配内存给PL）</li>
+<li><strong>DMA</strong>： 对应HP AXI，访问DMA，即高性能AXI端口</li>
+</ul>
+<h1 id="axi-协议">AXI 协议</h1>
+<ul>
+<li>AXI4：  通过一簇高达256 个数据字（或“ 数据拍（data beats）”）的数据传输来给定一个地址。</li>
+<li>AXI4_LITE： 只支持每次连接传输一个数据（非批量）。</li>
+<li>AXI4-Stream： 用于高速流数据，支持批量传输无限大小的数据。没有地址机制，这种总线类型最适合源和目的地之间的直接数据流。</li>
 </ul>
 ]]></content>
     </entry>
