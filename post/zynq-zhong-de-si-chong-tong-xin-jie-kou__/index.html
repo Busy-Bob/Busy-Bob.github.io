@@ -8,7 +8,7 @@
 <meta name="keywords" content="勺海的个人博客">
 <meta name="description" content="尽应尽之事，做让自己开心的事。">
 <meta name="theme-color" content="#000">
-<title>勺海的博客</title>
+<title>ZYNQ中的通信接口(包括PS与PL) | 勺海的博客</title>
 <link rel="shortcut icon" href="/favicon.ico?v=1609403714328">
 <link rel="stylesheet" href="/styles/main.css">
 <link rel="stylesheet" href="/media/css/pisces.css">
@@ -29,6 +29,8 @@
 
 
 
+  <meta name="description" content="ZYNQ中的通信接口(包括PS与PL)" />
+  <meta name="keywords" content="" />
 </head>
 
 <body>
@@ -136,10 +138,25 @@
   <div class="main-continer">
     
     <div
-      class="section-layout  pisces">
+      class="section-layout pisces ">
       <div class="section-layout-wrapper">
-        <div id="sidebarMeta" class="sidebar">
-    
+        
+
+<div class="sidebar">
+  
+    <div class="sidebar-box box-shadow-wrapper bg-color right-motion" id="sidebar">
+      
+        <div class="post-list-sidebar">
+          <div class="sidebar-title">
+            <span id="tocSideBar" class="sidebar-title-item sidebar-title-active">文章目录</span>
+            <span id="metaSideBar" class="sidebar-title-item">站点概览</span>
+          </div>
+        </div>
+      
+      <div class="sidebar-body pisces" id="sidebar_body">
+        
+          
+            
 <div class="sidebar-wrapper box-shadow-wrapper bg-color">
   <div class="sidebar-item">
     <img class="site-author-image right-motion" src="/images/avatar.png"/>
@@ -202,94 +219,227 @@
 
 
 </div>
+          
+        
+      </div>
+    </div>
+  
 </div>
 <script>
-  let sidebarMeta = document.querySelector('#sidebarMeta');
-  let scheme = 'pisces';
-  let sidebarWrapper = document.querySelector('.sidebar-wrapper');
-  if (sidebarMeta && (scheme === 'pisces' || scheme === 'gemini')) {
-    document.addEventListener('scroll', function(e) {
-      if (document.scrollingElement.scrollTop > parseInt(sidebarMeta.style.marginTop) + 10) {
-        sidebarWrapper.classList.add('home-sidebar-fixed')
-      } else {
-        sidebarWrapper.classList.remove('home-sidebar-fixed')
+  const SIDEBAR_TITLE_ACTIVE = 'sidebar-title-active';
+  const SIDEBAR_BODY_ACTIVE = 'sidebar-body-active';
+  const SLIDE_UP_IN = 'slide-up-in';
+
+  let sidebar = document.querySelector('#sidebar'),
+  tocSideBar = document.querySelector('#tocSideBar'),
+  metaSideBar = document.querySelector('#metaSideBar'),
+  postToc = document.querySelector('#post_toc'),
+  postSiteMeta = document.querySelector('#post_side_meta'),
+  sidebarTitle = document.querySelector('.sidebar-title'),
+  sidebarBody = document.querySelector('#sidebar_body');
+
+  tocSideBar && tocSideBar.addEventListener('click', (e) => {
+    toggleSidebar(e);
+  });
+
+  metaSideBar && metaSideBar.addEventListener('click', (e) => {
+    toggleSidebar(e);
+  });
+
+  function toggleSidebar(e) {
+    let currentTitle = document.querySelector("."+SIDEBAR_TITLE_ACTIVE);
+    if (currentTitle == e.srcElement) {
+      return ;
+    }
+    let current, showElement, hideElement;
+    if (e.srcElement == metaSideBar) {
+      showElement = postSiteMeta;
+      hideElement = postToc;
+    } else if (e.srcElement == tocSideBar){
+      showElement = postToc;
+      hideElement = postSiteMeta;
+    }
+    currentTitle.classList.remove(SIDEBAR_TITLE_ACTIVE);
+    e.srcElement.classList.add(SIDEBAR_TITLE_ACTIVE);
+
+    window.Velocity(hideElement, 'stop');
+    window.Velocity(hideElement, 'transition.slideUpOut', {
+      display: 'none',
+      duration: 200,
+      complete: function () {
+        window.Velocity(showElement, 'transition.slideDownIn', {
+          duration: 200
+        });
       }
-    });
+    })
+    hideElement.classList.remove(SIDEBAR_BODY_ACTIVE);
+    showElement.classList.add(SIDEBAR_BODY_ACTIVE);
   }
-  </script>
-        <div class="section-box tag-line box-shadow-wrapper">
-          <section class="section tags-section posts-expand bg-color">
-            <div class="padding-wrapper">
-  <div class="tag-timeline-box">
-    <div class="tag-timeline-wrapper">
-      <div class="tag-timeline-title">
-        <h2>
-          trait object
-          <small>标签</small>
-        </h2>
-      </div>
+
+  postToc && postToc.addEventListener('transitionend', function() {
+    this.classList.remove(SLIDE_UP_IN);
+  });
+
+  if (sidebarBody) {
+    if (sidebarBody.classList.contains('pisces') || sidebarBody.classList.contains('gemini')) {
+      let hasFix = false;
+      let scrollEl = document.querySelector('.main-continer');
+      let limitTop = document.querySelector('#nav_ul').children.length * 42 + 162;
+      window.addEventListener('scroll', function(e) {
+        if (document.scrollingElement.scrollTop >= limitTop) {
+          if (!hasFix) {
+            sidebar.classList.add('sidebar-fixed');
+            hasFix = true;
+          }
+        } else {
+          if (hasFix) {
+            sidebar.classList.remove('sidebar-fixed');
+            hasFix = false;
+          }
+        }
+      });
+    }
+  }
+  
+</script>
+        <div class="section-box box-shadow-wrapper">
+          <div class="section bg-color post post-page">
+            <header class="post-header">
+  <h1 class="post-title">
+    <a class="post-title-link" href="https://Busy-Bob.github.io/post/zynq-zhong-de-si-chong-tong-xin-jie-kou__/">
+      ZYNQ中的通信接口(包括PS与PL)
+    </a>
+  </h1>
+  <div class="post-meta">
+    
+    <span class="meta-item pc-show">
+      <i class="fa fa-calendar-o"></i>
+      <span>发布于</span>
+      <span>2020-12-31</span>
+      <span class="post-meta-divider pc-show">|</span>
+    </span>
+    
+    <span class="meta-item">
+      <i class="fa fa-clock-o"></i>
+      <span>2分钟</span>
+    </span>
+    <span class="meta-item">
+      <span class="post-meta-divider">|</span>
+      <i class="fa fa-file-word-o"></i>
+      <span>481<span class="pc-show">字数</span></span>
+    </span>
+    
+    
+    
+    <span id="/post/zynq-zhong-de-si-chong-tong-xin-jie-kou__/" data-flag-title="ZYNQ中的通信接口(包括PS与PL)" class="meta-item pc-show leancloud_visitors">
+      <span class="post-meta-divider">|</span>
+      <i class="fa fa-eye"></i>
+      <span>浏览量：<span class="leancloud-visitors-count"></span></span>
+    </span>
+    
+  </div>
+</header>
+            <div class="post-body next-md-body" id="post_body">
+              <p>总体架构图为：<br>
+<img src="https://Busy-Bob.github.io/post-images/1609385485651.png" alt="" loading="lazy"></p>
+<ul>
+<li><strong>PS (Processing System)中对外通信管脚:</strong>：
+<ul>
+<li><strong>MIO</strong> (Multiplexed Input/Output，MIO)： 利用复用的输入 / 输出，和外部接口之间通信，一共54 个引脚。MIO在zynq上的管脚是固定的，占用IO号为0-53。</li>
+<li><strong>EMIO</strong> (Extended MIO，EMIO)： 是通过PL部分扩展的，所以使用EMIO时候需要在<strong>约束文件中分配管脚</strong>，占用IO号为54-117。EMIO 并不是 PS 和外部连接之间的直接通路，而是通过共用了 PL 的 I/O 资源来实现的。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><em>当需要扩展超过 54 个引脚的时候可以用 EMIO，而当 PL 中实现了一个 IP 包的时候，这也是 PS 和 PL 中的IP 包接口的一种方法(即<strong>PS可以利用EMIO和PL进行通信</strong>)</em></p>
+</blockquote>
+<ul>
+<li>**PL (Programmable Logic) 和 PS的通信接口 **
+<ul>
+<li>
+<p>AXI4：  通过一簇高达256 个数据字（或“ 数据拍（data beats）”）的数据传输来给定一个地址。</p>
+</li>
+<li>
+<p>AXI4_LITE： 只支持每次连接传输一个数据（非批量）。</p>
+</li>
+<li>
+<p>AXI4-Stream： 用于高速流数据，支持批量传输无限大小的数据。没有地址机制，这种总线类型最适合源和目的地之间的直接数据流。<br>
+<img src="https://Busy-Bob.github.io/post-images/1609403066047.png" alt="" loading="lazy"></p>
+</li>
+<li>
+<p><strong>通用AXI（General Purpose AXI）</strong>： 一共有四个，对应图中主机互联和从机互联。32 位数据总线，适合PL 和PS 之间的<strong>中低速通信</strong>。接口是透传的不带缓冲。</p>
+</li>
+<li>
+<p><strong>加速器一致性端口（Accelerator Coherency Port）</strong>： 在PL 和APU 内的SCU之间的单个异步连接，总线宽度为64 位。这个端口用来实现APU cache 和PL的单元之间的一致性（直接和PS中的APU相连）</p>
+</li>
+<li>
+<p><strong>高性能端口（High Performance Ports）</strong>： 带有FIFO缓冲来提供“ 批量” 读写操作，并支持PL 和PS 中的存储器单元的高速率通信。数据宽度是32 或64 位，在所有四个接口中PL 都是做主机的。</p>
+</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+            <div class="post-footer">
+  <ul class="post-copyright">
+    <li class="post-copyright-author">
+      <strong>本文作者：</strong>
+      勺海
+    </li>
+    <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://Busy-Bob.github.io/post/zynq-zhong-de-si-chong-tong-xin-jie-kou__/" title="ZYNQ中的通信接口(包括PS与PL)">https://Busy-Bob.github.io/post/zynq-zhong-de-si-chong-tong-xin-jie-kou__/</a>
+    </li>
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong>
+      本博客所有文章除特别声明外，均采用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i> BY-NC-SA</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+  <div class="tags">
+    
+  </div>
+  <div class="nav">
+    <div class="nav-prev">
       
+        <i class="fa fa-chevron-left"></i>
+        <a class="nav-pc-next" title="The Zynq Book 学习： 引言" href="https://Busy-Bob.github.io/post/the-zynq-book-xue-xi/">The Zynq Book 学习： 引言</a class="nav-pc-next">
+        <a class="nav-mobile-prev" title="The Zynq Book 学习： 引言" href="https://Busy-Bob.github.io/post/the-zynq-book-xue-xi/">上一篇</a>
       
+    </div>
+    <div class="nav-next">
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      <a href="https://Busy-Bob.github.io/post/rust-cuo-wu-chu-li-zhong-duo-lei-xing-error-chu-li-fang-shi/">
-        <div class="motion-warpper">
-          <div class="tag-post-node">
-            <h1>
-              12-01
-              <small>Rust 错误处理中多种类型Error传播的处理方式</small>
-            </h1>
-          </div>
-        </div>
-      </a>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+        <a class="nav-pc-next" title="NAND Flash, NOR Flash 的区别和应用" href="https://Busy-Bob.github.io/post/nand-flash-nor-flash/">NAND Flash, NOR Flash 的区别和应用</a>
+        <a class="nav-mobile-next" title="NAND Flash, NOR Flash 的区别和应用" href="https://Busy-Bob.github.io/post/nand-flash-nor-flash/">下一篇</a>
+        <i class="fa fa-chevron-right"></i>
       
     </div>
   </div>
 </div>
-          </section>
+            
+  
+    
+      <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+  var gitalk = new Gitalk({
+    clientID: 'e32c230de13db368ea78',
+    clientSecret: '80f8c1d8fb3370a0c9df34a96b46d0d083867ac7',
+    repo: 'Busy-Bob.github.io',
+    owner: 'Busy-Bob',
+    admin: ['Busy-Bob'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+  gitalk.render('gitalk-container')
+</script>
+    
+    
+  
+
+          </div>
         </div>
       </div>
     </div>
@@ -459,6 +609,36 @@
   // 代码高亮
   hljs.initHighlightingOnLoad();
 
+</script>
+    <div class="light-box" id="light_box"></div>
+<script>
+  let imgs = document.querySelectorAll('.post-body img');
+  let lightBox = document.querySelector('#light_box');
+  lightBox.addEventListener('mousedown', (e) => {
+    e.preventDefault()
+  })
+  lightBox.addEventListener('mousewheel', (e) => {
+    e.preventDefault()
+  })
+  let width = window.innerWidth * 0.8;
+  lightBox.onclick = () => {
+    let img = lightBox.querySelector('img');
+    lightBox.style = '';
+    img && img.remove();
+  }
+  imgs.forEach(item => {
+    item.onclick = function (e) {
+      let lightImg = document.createElement('img');
+      lightImg.src = this.src;
+      lightBox.style = `height: 100%; opacity: 1; background-color: rgba(0, 0, 0, 0.5);cursor: zoom-out;`;
+      lightImg.style = `width: ${width}px; border: 1px solid #fff; border-radius: 2px;`;
+      lightImg.onclick = function () {
+        lightBox.style = '';
+        this.remove();
+      }
+      lightBox.append(lightImg);
+    }
+  })
 </script>
   </div>
 </body>
@@ -1286,6 +1466,5 @@ Rust异步编程是Rust语言中十分重要特性。现在Rust中的异步编�
 
 
 <script src=" /media/js/cool.js"></script>
-
 
 </html>

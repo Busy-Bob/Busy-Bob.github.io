@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://Busy-Bob.github.io</id>
     <title>勺海的博客</title>
-    <updated>2020-12-29T15:57:23.641Z</updated>
+    <updated>2020-12-31T08:35:45.034Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://Busy-Bob.github.io"/>
     <link rel="self" href="https://Busy-Bob.github.io/atom.xml"/>
@@ -10,6 +10,103 @@
     <logo>https://Busy-Bob.github.io/images/avatar.png</logo>
     <icon>https://Busy-Bob.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, 勺海的博客</rights>
+    <entry>
+        <title type="html"><![CDATA[The Zynq Book 学习： 引言]]></title>
+        <id>https://Busy-Bob.github.io/post/the-zynq-book-xue-xi/</id>
+        <link href="https://Busy-Bob.github.io/post/the-zynq-book-xue-xi/">
+        </link>
+        <updated>2020-12-31T07:25:06.000Z</updated>
+        <summary type="html"><![CDATA[<p>学习The Zynq Book第一章时的一些笔记</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>学习The Zynq Book第一章时的一些笔记</p>
+<!-- more -->
+<ul>
+<li>
+<p>Zynq 的本质特征，是它组合了一个双核ARM Cortex-A9 <strong>处理器</strong>和一个传统的现场可编程门阵列（Field Programmable Gate Array，<strong>FPGA</strong>）逻辑部件。</p>
+</li>
+<li>
+<p>这个架构实现了工业标准的AXI 接口，在芯片的两个部分之间实现了<strong>高带宽、低延迟</strong>的连接。</p>
+</li>
+<li>
+<p>这意味着处理器和逻辑部分各自都可以发挥最佳的用途，而<strong>不会有</strong>在两个分立的芯片之间的那种<strong>接口开销</strong>。同时又能获得系统被简化为单一芯片所带来的好处，包括<strong>物理尺寸</strong>和整体<strong>成本的降低</strong>。</p>
+</li>
+<li>
+<p><strong>什么是片上系统/SoC (System on Chip)</strong>:</p>
+<ul>
+<li>单个硅芯片就可以用来实现整个系统的功能，而不是需要用几个不同的物理芯片来实现。</li>
+<li>常用于指专用集成电路（Application Specific Integrated Circuit，ASIC）</li>
+<li>和板上系统(在pcb板中组合多个元件)对比。</li>
+<li><strong>缺点</strong>：
+<ul>
+<li>开发时间和成本</li>
+<li>难以重用，不够灵活（与FPGA不同，直接设计芯片设计）</li>
+</ul>
+</li>
+<li><strong>例子</strong>：手机，PC，平板等的CPU</li>
+</ul>
+</li>
+<li>
+<p>Zynq：灵活的SoC 的平台，全可编程SoC （All-Programmable SoC，APSoC）</p>
+<ul>
+<li>处理系统（PS）：支持软件程序和/ 或操作系统</li>
+<li>可编程逻辑（PL）：实现高速逻辑、算术和数据流子系统</li>
+<li>工业标准的高级可扩展接口（Advanced eXtensible Interface，AXI）连接。<br>
+<img src="https://Busy-Bob.github.io/post-images/1609400781987.png" alt="" loading="lazy"></li>
+</ul>
+</li>
+<li>
+<p>软硬件系统关系<br>
+<img src="https://Busy-Bob.github.io/post-images/1609401050095.png" alt="" loading="lazy"></p>
+</li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[ZYNQ中的通信接口(包括PS与PL)]]></title>
+        <id>https://Busy-Bob.github.io/post/zynq-zhong-de-si-chong-tong-xin-jie-kou__/</id>
+        <link href="https://Busy-Bob.github.io/post/zynq-zhong-de-si-chong-tong-xin-jie-kou__/">
+        </link>
+        <updated>2020-12-31T02:45:05.000Z</updated>
+        <content type="html"><![CDATA[<p>总体架构图为：<br>
+<img src="https://Busy-Bob.github.io/post-images/1609385485651.png" alt="" loading="lazy"></p>
+<ul>
+<li><strong>PS (Processing System)中对外通信管脚:</strong>：
+<ul>
+<li><strong>MIO</strong> (Multiplexed Input/Output，MIO)： 利用复用的输入 / 输出，和外部接口之间通信，一共54 个引脚。MIO在zynq上的管脚是固定的，占用IO号为0-53。</li>
+<li><strong>EMIO</strong> (Extended MIO，EMIO)： 是通过PL部分扩展的，所以使用EMIO时候需要在<strong>约束文件中分配管脚</strong>，占用IO号为54-117。EMIO 并不是 PS 和外部连接之间的直接通路，而是通过共用了 PL 的 I/O 资源来实现的。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><em>当需要扩展超过 54 个引脚的时候可以用 EMIO，而当 PL 中实现了一个 IP 包的时候，这也是 PS 和 PL 中的IP 包接口的一种方法(即<strong>PS可以利用EMIO和PL进行通信</strong>)</em></p>
+</blockquote>
+<ul>
+<li>**PL (Programmable Logic) 和 PS的通信接口 **
+<ul>
+<li>
+<p>AXI4：  通过一簇高达256 个数据字（或“ 数据拍（data beats）”）的数据传输来给定一个地址。</p>
+</li>
+<li>
+<p>AXI4_LITE： 只支持每次连接传输一个数据（非批量）。</p>
+</li>
+<li>
+<p>AXI4-Stream： 用于高速流数据，支持批量传输无限大小的数据。没有地址机制，这种总线类型最适合源和目的地之间的直接数据流。<br>
+<img src="https://Busy-Bob.github.io/post-images/1609403066047.png" alt="" loading="lazy"></p>
+</li>
+<li>
+<p><strong>通用AXI（General Purpose AXI）</strong>： 一共有四个，对应图中主机互联和从机互联。32 位数据总线，适合PL 和PS 之间的<strong>中低速通信</strong>。接口是透传的不带缓冲。</p>
+</li>
+<li>
+<p><strong>加速器一致性端口（Accelerator Coherency Port）</strong>： 在PL 和APU 内的SCU之间的单个异步连接，总线宽度为64 位。这个端口用来实现APU cache 和PL的单元之间的一致性（直接和PS中的APU相连）</p>
+</li>
+<li>
+<p><strong>高性能端口（High Performance Ports）</strong>： 带有FIFO缓冲来提供“ 批量” 读写操作，并支持PL 和PS 中的存储器单元的高速率通信。数据宽度是32 或64 位，在所有四个接口中PL 都是做主机的。</p>
+</li>
+</ul>
+</li>
+</ul>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[NAND Flash, NOR Flash 的区别和应用]]></title>
         <id>https://Busy-Bob.github.io/post/nand-flash-nor-flash/</id>
