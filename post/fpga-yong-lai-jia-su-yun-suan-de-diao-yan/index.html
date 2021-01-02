@@ -8,7 +8,7 @@
 <meta name="keywords" content="勺海的个人博客">
 <meta name="description" content="尽应尽之事，做让自己开心的事。">
 <meta name="theme-color" content="#000">
-<title>勺海的博客</title>
+<title>FPGA用来加速运算的调研 | 勺海的博客</title>
 <link rel="shortcut icon" href="/favicon.ico?v=1609581951274">
 <link rel="stylesheet" href="/styles/main.css">
 <link rel="stylesheet" href="/media/css/pisces.css">
@@ -29,6 +29,8 @@
 
 
 
+  <meta name="description" content="FPGA用来加速运算的调研" />
+  <meta name="keywords" content="FPGA" />
 </head>
 
 <body>
@@ -136,10 +138,26 @@
   <div class="main-continer">
     
     <div
-      class="section-layout  pisces">
+      class="section-layout pisces ">
       <div class="section-layout-wrapper">
-        <div id="sidebarMeta" class="sidebar">
-    
+        
+
+<div class="sidebar">
+  
+    <div class="sidebar-box box-shadow-wrapper bg-color right-motion" id="sidebar">
+      
+        <div class="post-list-sidebar">
+          <div class="sidebar-title">
+            <span id="tocSideBar" class="sidebar-title-item sidebar-title-active">文章目录</span>
+            <span id="metaSideBar" class="sidebar-title-item">站点概览</span>
+          </div>
+        </div>
+      
+      <div class="sidebar-body pisces" id="sidebar_body">
+        
+          
+            <div class="post-side-meta" id="post_side_meta">
+              
 <div class="sidebar-wrapper box-shadow-wrapper bg-color">
   <div class="sidebar-item">
     <img class="site-author-image right-motion" src="/images/avatar.png"/>
@@ -202,108 +220,455 @@
 
 
 </div>
+            </div>
+            <div class="post-toc sidebar-body-active" id="post_toc" style="opacity: 1;">
+              <div class="toc-box right-motion">
+  <div class="toc-wrapper auto-number auto"
+    id="toc_wrapper">
+    <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li></li>
+<li></li>
+<li></li>
+</ul>
+</li>
+</ul>
+
+  </div>
 </div>
+
 <script>
-  let sidebarMeta = document.querySelector('#sidebarMeta');
-  let scheme = 'pisces';
-  let sidebarWrapper = document.querySelector('.sidebar-wrapper');
-  if (sidebarMeta && (scheme === 'pisces' || scheme === 'gemini')) {
-    document.addEventListener('scroll', function(e) {
-      if (document.scrollingElement.scrollTop > parseInt(sidebarMeta.style.marginTop) + 10) {
-        sidebarWrapper.classList.add('home-sidebar-fixed')
-      } else {
-        sidebarWrapper.classList.remove('home-sidebar-fixed')
+
+  let lastTop = 0, lList = [], hList = [], postBody, lastIndex = -1;
+  let active = 'active-show', activeClass = 'active-current';
+  let tocWrapper = document.querySelector('#toc_wrapper');
+  let tocContent = tocWrapper.children[0];
+  let autoNumber = tocWrapper && tocWrapper.classList.contains('auto-number');
+
+  function addTocNumber(elem, deep) {
+    if (!elem) {
+      return;
+    }
+    let prop = elem.__proto__;
+
+    if (prop === HTMLUListElement.prototype) {
+      for (let i = 0; i < elem.children.length; i++) {
+        addTocNumber(elem.children[i], deep + (i + 1) + '.');
       }
+    } else if (prop === HTMLLIElement.prototype) {
+      // 保存li元素
+      if (elem.children[0].__proto__ === HTMLAnchorElement.prototype) {
+        lList.push(elem);
+      }
+      for (let i = 0; i < elem.children.length; i++) {
+        let cur = elem.children[i];
+        if (cur.__proto__ === HTMLAnchorElement.prototype) {
+          if (autoNumber) {
+            cur.text = deep + ' ' + cur.text;
+          }
+        } else if (cur.__proto__ === HTMLUListElement.prototype) {
+          addTocNumber(cur, deep);
+        }
+      }
+    }
+  }
+
+  function removeParentActiveClass() {
+    let parents = tocContent.querySelectorAll('.' + active)
+    parents.forEach(function (elem) {
+      elem.classList.remove(active);
     });
   }
-  </script>
-        <div class="section-box tag-line box-shadow-wrapper">
-          <section class="section tags-section posts-expand bg-color">
-            <div class="padding-wrapper">
-  <div class="tag-timeline-box">
-    <div class="tag-timeline-wrapper">
-      <div class="tag-timeline-title">
-        <h2>
-          错误处理
-          <small>标签</small>
-        </h2>
+
+  function addActiveClass(index) {
+    if (index >= 0 && index < hList.length) {
+      lList[index].classList.add(activeClass);
+    }
+  }
+
+  function removeActiveClass(index) {
+    if (index >= 0 && index < hList.length) {
+      lList[index].classList.remove(activeClass);
+    }
+  }
+
+  function addActiveLiElemment(elem, parent) {
+    if (!elem || elem === parent) {
+      return;
+    } else {
+      if (elem.__proto__ === HTMLLIElement.prototype) {
+        elem.classList.add(active);
+      }
+      addActiveLiElemment(elem.parentElement, parent);
+    }
+  }
+
+  function showToc() {
+    if (tocWrapper) {
+      postBody = document.querySelector('#post_body');
+      for (let i = 0; i < postBody.children.length; i++) {
+        if (postBody.children[i].__proto__ === HTMLHeadingElement.prototype) {
+          hList.push(postBody.children[i]);
+        }
+      }
+      if (tocWrapper.classList.contains('compress')) {
+        tocContent.classList.add('closed');
+      } else if (tocWrapper.classList.contains('no_compress')) {
+        tocContent.classList.add('expanded');
+      } else {
+        if (hList.length > 10) {
+          active = 'active-hidden'
+          tocContent.classList.add('closed');
+        } else {
+          tocContent.classList.add('expanded');
+        }
+      }
+    }
+  }
+
+  (function () {
+    // 处理不是从#一级标题开始目录
+    if (tocContent.children.length === 1 && tocContent.children[0].__proto__ === HTMLLIElement.prototype) {
+      let con = tocContent.children[0].children[0];
+      tocContent.innerHTML = con.innerHTML;
+    }
+    let markdownItTOC = document.querySelector('.markdownIt-TOC');
+    let innerHeight = window.innerHeight;
+    markdownItTOC.style = `max-height: ${innerHeight - 80 > 0 ? innerHeight - 80 : innerHeight}px`
+    addTocNumber(tocContent, '');
+  })();
+
+  document.addEventListener('scroll', function (e) {
+    if (lList.length <= 0) {
+      return;
+    }
+    let scrollTop = document.scrollingElement.scrollTop + 10;
+    let dir;
+
+    if (lastTop - scrollTop > 0) {
+      dir = 'up';
+    } else {
+      dir = 'down';
+    }
+
+    lastTop = scrollTop;
+    if (scrollTop <= 0) {
+      if (lastIndex >= 0 && lastIndex < hList.length) {
+        lList[lastIndex].classList.remove(activeClass);
+      }
+      return;
+    }
+
+    let current = 0, hasFind = false;
+    for (let i = 0; i < hList.length; i++) {
+      if (hList[i].offsetTop > scrollTop) {
+        current = i;
+        hasFind = true;
+        break;
+      }
+    }
+    if (!hasFind && scrollTop > lList[lList.length - 1].offsetTop) {
+      current = hList.length - 1;
+    } else {
+      current--;
+    }
+    if (dir === 'down') {
+      if (current > lastIndex) {
+        addActiveClass(current);
+        removeActiveClass(lastIndex)
+        lastIndex = current;
+        removeParentActiveClass();
+        lList[current] && addActiveLiElemment(lList[current].parentElement, tocContent);
+      }
+    } else {
+      if (current < lastIndex) {
+        addActiveClass(current);
+        removeActiveClass(lastIndex);
+        lastIndex = current;
+        removeParentActiveClass();
+        lList[current] && addActiveLiElemment(lList[current].parentElement, tocContent);
+      }
+    }
+  });
+
+
+  window.addEventListener('load', function () {
+    showToc();
+    document.querySelector('#sidebar').style = 'display: block;';
+    tocWrapper.classList.add('toc-active');
+    setTimeout(function () {
+      if ("createEvent" in document) {
+        let evt = document.createEvent("HTMLEvents");
+        evt.initEvent("scroll", false, true);
+        document.dispatchEvent(evt);
+      }
+      else {
+        document.fireEvent("scroll");
+      }
+    }, 500)
+  })
+
+</script>
+            </div>
+          
+        
       </div>
+    </div>
+  
+</div>
+<script>
+  const SIDEBAR_TITLE_ACTIVE = 'sidebar-title-active';
+  const SIDEBAR_BODY_ACTIVE = 'sidebar-body-active';
+  const SLIDE_UP_IN = 'slide-up-in';
+
+  let sidebar = document.querySelector('#sidebar'),
+  tocSideBar = document.querySelector('#tocSideBar'),
+  metaSideBar = document.querySelector('#metaSideBar'),
+  postToc = document.querySelector('#post_toc'),
+  postSiteMeta = document.querySelector('#post_side_meta'),
+  sidebarTitle = document.querySelector('.sidebar-title'),
+  sidebarBody = document.querySelector('#sidebar_body');
+
+  tocSideBar && tocSideBar.addEventListener('click', (e) => {
+    toggleSidebar(e);
+  });
+
+  metaSideBar && metaSideBar.addEventListener('click', (e) => {
+    toggleSidebar(e);
+  });
+
+  function toggleSidebar(e) {
+    let currentTitle = document.querySelector("."+SIDEBAR_TITLE_ACTIVE);
+    if (currentTitle == e.srcElement) {
+      return ;
+    }
+    let current, showElement, hideElement;
+    if (e.srcElement == metaSideBar) {
+      showElement = postSiteMeta;
+      hideElement = postToc;
+    } else if (e.srcElement == tocSideBar){
+      showElement = postToc;
+      hideElement = postSiteMeta;
+    }
+    currentTitle.classList.remove(SIDEBAR_TITLE_ACTIVE);
+    e.srcElement.classList.add(SIDEBAR_TITLE_ACTIVE);
+
+    window.Velocity(hideElement, 'stop');
+    window.Velocity(hideElement, 'transition.slideUpOut', {
+      display: 'none',
+      duration: 200,
+      complete: function () {
+        window.Velocity(showElement, 'transition.slideDownIn', {
+          duration: 200
+        });
+      }
+    })
+    hideElement.classList.remove(SIDEBAR_BODY_ACTIVE);
+    showElement.classList.add(SIDEBAR_BODY_ACTIVE);
+  }
+
+  postToc && postToc.addEventListener('transitionend', function() {
+    this.classList.remove(SLIDE_UP_IN);
+  });
+
+  if (sidebarBody) {
+    if (sidebarBody.classList.contains('pisces') || sidebarBody.classList.contains('gemini')) {
+      let hasFix = false;
+      let scrollEl = document.querySelector('.main-continer');
+      let limitTop = document.querySelector('#nav_ul').children.length * 42 + 162;
+      window.addEventListener('scroll', function(e) {
+        if (document.scrollingElement.scrollTop >= limitTop) {
+          if (!hasFix) {
+            sidebar.classList.add('sidebar-fixed');
+            hasFix = true;
+          }
+        } else {
+          if (hasFix) {
+            sidebar.classList.remove('sidebar-fixed');
+            hasFix = false;
+          }
+        }
+      });
+    }
+  }
+  
+</script>
+        <div class="section-box box-shadow-wrapper">
+          <div class="section bg-color post post-page">
+            <header class="post-header">
+  <h1 class="post-title">
+    <a class="post-title-link" href="https://Busy-Bob.github.io/post/fpga-yong-lai-jia-su-yun-suan-de-diao-yan/">
+      FPGA用来加速运算的调研
+    </a>
+  </h1>
+  <div class="post-meta">
+    
+    <span class="meta-item pc-show">
+      <i class="fa fa-calendar-o"></i>
+      <span>发布于</span>
+      <span>2021-01-02</span>
+      <span class="post-meta-divider pc-show">|</span>
+    </span>
+    
+    <span class="meta-item">
+      <i class="fa fa-folder-o"></i>
+      <span class="pc-show">分类于</span>
       
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      <a href="https://Busy-Bob.github.io/post/rust-cuo-wu-chu-li-zhong-duo-lei-xing-error-chu-li-fang-shi/">
-        <div class="motion-warpper">
-          <div class="tag-post-node">
-            <h1>
-              12-01
-              <small>Rust 错误处理中多种类型Error传播的处理方式</small>
-            </h1>
-          </div>
-        </div>
+      <a href="https://Busy-Bob.github.io/tag/9jjFooiOMM/">
+        <span>FPGA</span>
       </a>
       
       
+    </span>
+    <span class="post-meta-divider">|</span>
+    
+    <span class="meta-item">
+      <i class="fa fa-clock-o"></i>
+      <span>4分钟</span>
+    </span>
+    <span class="meta-item">
+      <span class="post-meta-divider">|</span>
+      <i class="fa fa-file-word-o"></i>
+      <span>963<span class="pc-show">字数</span></span>
+    </span>
+    
+    
+    
+    <span id="/post/fpga-yong-lai-jia-su-yun-suan-de-diao-yan/" data-flag-title="FPGA用来加速运算的调研" class="meta-item pc-show leancloud_visitors">
+      <span class="post-meta-divider">|</span>
+      <i class="fa fa-eye"></i>
+      <span>浏览量：<span class="leancloud-visitors-count"></span></span>
+    </span>
+    
+  </div>
+</header>
+            <div class="post-body next-md-body" id="post_body">
+              <p>FPGA用来加速运算的调研.😁</p>
+<!-- more -->
+<h2 id=""><a href="https://www.zhihu.com/question/280468724/answer/517329473"><strong>FPGA算法加速有什么一般的套路？ - Dorus TAN的回答 - 知乎</strong></a></h2>
+<ol>
+<li>并行计算，比如每个步骤没有关连性的循环操作；</li>
+<li>算法步骤的固定程度，通常越固定的算法越适合用流水线实现，虽然结果延迟差不多，但是流水结构的吞吐量非常大；</li>
+<li>乘法运算，FPGA的乘法运算通常用乘法器只需要一个周期；</li>
+<li>一些特定的矩阵运算。</li>
+</ol>
+<h2 id="-2"><a href="https://www.zhihu.com/question/24174597/answer/138717507"><strong>如何评价微软在数据中心使用 FPGA 代替传统 CPU 的做法？ - 李博杰的回答 - 知乎</strong></a></h2>
+<ul>
+<li>
+<p>FPGA 为什么快？「都是同行衬托得好」。**CPU、GPU 都属于冯·诺依曼结构，指令译码执行、共享内存。**FPGA 之所以比 CPU 甚至 GPU 能效高，本质上是无指令、无需共享内存的体系结构带来的福利。</p>
+</li>
+<li>
+<p>FPGA 每个逻辑单元的功能在重编程（烧写）时就已经确定，<strong>不需要指令</strong>。</p>
+</li>
+<li>
+<p><strong>计算密集型任务</strong>(包括矩阵运算、图像处理、机器学习、压缩、非对称加密、Bing 搜索的排序等)</p>
+<ul>
+<li>Stratix V FPGA 的整数乘法运算性能与 20 核的 CPU 基本相当</li>
+<li>浮点乘法运算性能与 8 核的 CPU 基本相当，而比 GPU 低一个数量级。</li>
+<li>在数据中心，FPGA 相比 GPU 的核心优势在于<strong>延迟</strong>。</li>
+<li>FPGA 同时拥有<strong>流水线并行和数据并行</strong>，而 GPU 几乎只有数据并行（流水线深度受限）。</li>
+<li>数据中心的计算任务是<strong>灵活多变</strong>的，而 ASIC 研发成本高、周期长。好不容易大规模部署了一批某种神经网络的加速卡，结果另一种神经网络更火了，钱就白费了。FPGA 只需要几百毫秒就可以更新逻辑功能。FPGA 的灵活性可以保护投资</li>
+</ul>
+</li>
+<li>
+<p><strong>通信密集型任务</strong></p>
+<ul>
+<li>从吞吐量上讲，FPGA 上的收发器可以直接接上 40 Gbps 甚至 100 Gbps 的网线，以线速处理任意大小的数据包。</li>
+<li>网卡把数据包收到 CPU，CPU 再发给网卡，即使使用 DPDK 这样高性能的数据包处理框架，延迟也有 4~5 微秒。</li>
+</ul>
+</li>
+<li>
+<p>只要规模足够大，对 FPGA 价格过高的担心将是不必要的。</p>
+</li>
+<li>
+<p>对很多类型的应用，随着分布式 FPGA 加速器的规模扩大，其性能提升是超线性的。</p>
+</li>
+<li>
+<p>把任务拆分到分布式 FPGA 集群的关键在于平衡计算和通信。</p>
+</li>
+<li>
+<p>每做一点不同的事情，就要占用一定的 FPGA 逻辑资源。<strong>如果要做的事情复杂、重复性不强，就会占用大量的逻辑资源，其中的大部分处于闲置状态</strong>。这时就不如用冯·诺依曼结构的处理器。</p>
+</li>
+<li>
+<p>FPGA 和 CPU 协同工作，<strong>局部性和重复性强的归 FPGA，复杂的归 CPU</strong>。</p>
+</li>
+</ul>
+<h2 id="-3"><a href="https://china.xilinx.com/support/documentation/white_papers/c_wp491-floating-to-fixed-point.pdf"><strong>将浮点转为定点大幅降低功耗和成本 - Xilinx</strong></a></h2>
+<ul>
+<li>用定点实现的设计总是比用浮点实现的同一设计更加高效，因为定点实现方案所占用的资源和消耗的功耗更少。若将设计迁移到定点，功耗和占用面积缩减一半并不稀奇。</li>
+<li>对于采用 C/C++ 语言设计的客户，赛灵思提供 Vivado HLS 并支持任意精度定点数据类型，使客户能够方便地采用定点进行设计或者将现有的 C/C++ 设计转换成定点。</li>
+<li><strong>浮点转换为定点的优势</strong>:
+<ul>
+<li>减少 FPGA 资源占用（所需的 DSP48E2、查找表 (LUT) 和触发器更少，存储定点数字所需的存储容量更小）</li>
+<li>功耗更低</li>
+<li>材料成本降低</li>
+<li>降低时延</li>
+<li>相近的性能和精度</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+            <div class="post-footer">
+  <ul class="post-copyright">
+    <li class="post-copyright-author">
+      <strong>本文作者：</strong>
+      勺海
+    </li>
+    <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://Busy-Bob.github.io/post/fpga-yong-lai-jia-su-yun-suan-de-diao-yan/" title="FPGA用来加速运算的调研">https://Busy-Bob.github.io/post/fpga-yong-lai-jia-su-yun-suan-de-diao-yan/</a>
+    </li>
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong>
+      本博客所有文章除特别声明外，均采用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i> BY-NC-SA</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+  <div class="tags">
+    
+      <a href="https://Busy-Bob.github.io/tag/9jjFooiOMM/"># FPGA</a>
+    
+  </div>
+  <div class="nav">
+    <div class="nav-prev">
       
+    </div>
+    <div class="nav-next">
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+        <a class="nav-pc-next" title="The Zynq Book 学习： 引言" href="https://Busy-Bob.github.io/post/the-zynq-book-xue-xi/">The Zynq Book 学习： 引言</a>
+        <a class="nav-mobile-next" title="The Zynq Book 学习： 引言" href="https://Busy-Bob.github.io/post/the-zynq-book-xue-xi/">下一篇</a>
+        <i class="fa fa-chevron-right"></i>
       
     </div>
   </div>
 </div>
-          </section>
+            
+  
+    
+      <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+  var gitalk = new Gitalk({
+    clientID: 'e32c230de13db368ea78',
+    clientSecret: '80f8c1d8fb3370a0c9df34a96b46d0d083867ac7',
+    repo: 'Busy-Bob.github.io',
+    owner: 'Busy-Bob',
+    admin: ['Busy-Bob'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+  gitalk.render('gitalk-container')
+</script>
+    
+    
+  
+
+          </div>
         </div>
       </div>
     </div>
@@ -473,6 +838,36 @@
   // 代码高亮
   hljs.initHighlightingOnLoad();
 
+</script>
+    <div class="light-box" id="light_box"></div>
+<script>
+  let imgs = document.querySelectorAll('.post-body img');
+  let lightBox = document.querySelector('#light_box');
+  lightBox.addEventListener('mousedown', (e) => {
+    e.preventDefault()
+  })
+  lightBox.addEventListener('mousewheel', (e) => {
+    e.preventDefault()
+  })
+  let width = window.innerWidth * 0.8;
+  lightBox.onclick = () => {
+    let img = lightBox.querySelector('img');
+    lightBox.style = '';
+    img && img.remove();
+  }
+  imgs.forEach(item => {
+    item.onclick = function (e) {
+      let lightImg = document.createElement('img');
+      lightImg.src = this.src;
+      lightBox.style = `height: 100%; opacity: 1; background-color: rgba(0, 0, 0, 0.5);cursor: zoom-out;`;
+      lightImg.style = `width: ${width}px; border: 1px solid #fff; border-radius: 2px;`;
+      lightImg.onclick = function () {
+        lightBox.style = '';
+        this.remove();
+      }
+      lightBox.append(lightImg);
+    }
+  })
 </script>
   </div>
 </body>
@@ -1369,6 +1764,5 @@ Rust异步编程是Rust语言中十分重要特性。现在Rust中的异步编�
 
 
 <script src=" /media/js/cool.js"></script>
-
 
 </html>
