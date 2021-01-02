@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://Busy-Bob.github.io</id>
     <title>勺海的博客</title>
-    <updated>2021-01-02T10:05:54.782Z</updated>
+    <updated>2021-01-02T11:50:16.533Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://Busy-Bob.github.io"/>
     <link rel="self" href="https://Busy-Bob.github.io/atom.xml"/>
@@ -30,7 +30,7 @@
 <h2 id="-2"><a href="https://www.zhihu.com/question/24174597/answer/138717507"><strong>如何评价微软在数据中心使用 FPGA 代替传统 CPU 的做法？ - 李博杰的回答 - 知乎</strong></a></h2>
 <ul>
 <li>
-<p>FPGA 为什么快？「都是同行衬托得好」。**CPU、GPU 都属于冯·诺依曼结构，指令译码执行、共享内存。**FPGA 之所以比 CPU 甚至 GPU 能效高，本质上是无指令、无需共享内存的体系结构带来的福利。</p>
+<p>FPGA 为什么快？「都是同行衬托得好」。<strong>CPU、GPU 都属于冯·诺依曼结构，指令译码执行、共享内存</strong>，FPGA 之所以比 CPU 甚至 GPU 能效高，本质上是无指令、无需共享内存的体系结构带来的福利。</p>
 </li>
 <li>
 <p>FPGA 每个逻辑单元的功能在重编程（烧写）时就已经确定，<strong>不需要指令</strong>。</p>
