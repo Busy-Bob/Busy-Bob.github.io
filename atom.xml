@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://Busy-Bob.github.io</id>
     <title>勺海的博客</title>
-    <updated>2021-01-05T07:53:34.395Z</updated>
+    <updated>2021-01-05T14:30:16.301Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://Busy-Bob.github.io"/>
     <link rel="self" href="https://Busy-Bob.github.io/atom.xml"/>
@@ -616,6 +616,223 @@ template&lt;typename T, size_t N&gt; class alignas(gp2(sizeof(T) * N)) vector
 <li>在CPU体系结构中，通常避免有条件或分支操作。当程序需要分支时，它将丢失存储在CPU提取管线中的所有指令。<strong>在FPGA体系结构中，每个条件分支的硬件中已经存在一条单独的路径，并且不会与流水线任务内部的分支相关的性能下降。这只是选择要使用哪个分支的一种情况。</strong></li>
 <li><a href="https://www.xilinx.com/html_docs/xilinx2020_2/vitis_doc/hls_pragmas.html">HLS Pragmas</a>的使用。</li>
 </ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Vitis HLS 的Tiny Tutorial部分代码分析]]></title>
+        <id>https://Busy-Bob.github.io/post/vitis-hls-de-tiny-tutorial-bu-fen-dai-ma-fen-xi/</id>
+        <link href="https://Busy-Bob.github.io/post/vitis-hls-de-tiny-tutorial-bu-fen-dai-ma-fen-xi/">
+        </link>
+        <updated>2021-01-04T06:15:07.000Z</updated>
+        <summary type="html"><![CDATA[<p>对例子中的语法等的一点记录</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>对例子中的语法等的一点记录</p>
+<!-- more -->
+<h1 id="背景介绍">背景介绍</h1>
+<ul>
+<li><strong>HLS</strong> (high-level synthesis)： 高级综合, 用 C/C++为FPGA开发 RTL IP.</li>
+<li><strong>Vitis HLS</strong>:  在Vivado 2020版本中替代原先的Vivado HLS, 功能略有差异，在Vivado HLS中的例子直接在Vitis HLS上跑会报错。详细比较见<a href="https://cloud.tencent.com/developer/article/1745199">Vivado HLS和Vitis HLS什么区别？</a></li>
+<li><strong>HLS中的pragma语法</strong>: <a href="https://www.xilinx.com/html_docs/xilinx2020_2/vitis_doc/hls_pragmas.html">HLS Pragmas</a></li>
+</ul>
+<h1 id="内容">内容</h1>
+<ul>
+<li><code>#pragma HLS dataflow</code>
+<ul>
+<li>默认情况下，Vitis HLS工具试图最小化延迟并提高并发性。但是，数据依赖性可能会限制这一点。DATAFLOW优化使<strong>函数或循环中的操作能够在上一个函数或循环完成其所有操作之前开始操作</strong>。（能够分析更细）。</li>
+<li>也能够解决两个不依赖循环不并行情况（类似于封装进函数）。</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-C++">void diamond(data_t vecIn[N], data_t vecOut[N])
+{
+  data_t c1[N], c2[N], c3[N], c4[N];
+#pragma HLS dataflow
+  funcA(vecIn, c1, c2);
+  funcB(c1, c3);
+  funcC(c2, c4);
+  funcD(c3, c4, vecOut);
+}
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://Busy-Bob.github.io/post-images/1609835551513.png" alt="" loading="lazy"></figure>
+<ul>
+<li><code>#pragma HLS pipeline rewind</code>
+<ul>
+<li>构造一个连续循环的流水线。两次循环之间没有暂停。</li>
+<li>不能包含条件分支 (if-else)</li>
+<li>只支持循环，不支持函数的流水线化。</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-C++">  for (int i = 0; i &lt; N; i++)
+  {
+#pragma HLS pipeline rewind
+#pragma HLS unroll factor = 2
+    data_t t = in[i] * 3;
+    out1[i] = t;
+    out2[i] = t;
+  }
+</code></pre>
+<ul>
+<li><code>#pragma HLS unroll factor = 2</code>
+<ul>
+<li>将循环展开多少次</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-C++">for(int i = 0; i &lt; X; i++) {
+  pragma HLS unroll factor=2
+  a[i] = b[i] + c[i];
+}
+</code></pre>
+<p>变成：</p>
+<pre><code class="language-C++">for(int i = 0; i &lt; X; i += 2) {
+  a[i] = b[i] + c[i];
+  if (i+1 &gt;= X) break;
+  a[i+1] = b[i+1] + c[i+1];
+}
+</code></pre>
+<ul>
+<li><code>#pragma HLS function_instantiate variable=&lt;variable&gt;</code>
+<ul>
+<li>FUNCTION_INSTANTIATE编译指示用于为函数的每个实例创建唯一的RTL实现，从而可以根据函数调用对每个实例进行本地优化。因为：调用函数时，<strong>函数的某些输入可以是恒定值</strong>，并使用它来简化周围的控制结构并<strong>生成更小的</strong>，<strong>更优化的功能块</strong>。</li>
+<li><code>variable</code>是必需的参数，用于定义要用作常量的函数参数。</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-C++">char foo(char inval, char incr) {
+#pragma HLS INLINE OFF
+#pragma HLS FUNCTION_INSTANTIATE variable=incr
+ return inval + incr;
+}
+
+void top(char inval1, char inval2, char inval3,
+ char *outval1, char *outval2, char *outval3)
+{
+ *outval1 = foo(inval1,   0);
+ *outval2 = foo(inval2,   1);
+ *outval3 = foo(inval3, 100);
+}
+</code></pre>
+<ul>
+<li><strong>不完美的循环(imperfect loop)</strong>:
+<ul>
+<li>内层循环上限是一个变量。</li>
+<li>循环体并非全部在最里层循环中。</li>
+<li>所以<strong>没法展开</strong>，会造成额外的进出循环的时钟周期。</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-C++">    LOOP_I:for(i=0; i &lt; 20; i++){
+        acc = 0;
+        LOOP_J: for(j=0; j &lt; 20; j++){
+            acc += A[j] * j;
+        }
+        if (i%2 == 0)
+            B[i] = acc / 20;
+        else
+            B[i] = 0;
+    }
+</code></pre>
+<ul>
+<li>将不完美循环改写成完美循环的trick：<strong>使用条件语句</strong>。</li>
+</ul>
+<pre><code class="language-C++">    LOOP_I:for(i=0; i &lt; 20; i++){
+        LOOP_J: for(j=0; j &lt; 20; j++){
+            if(j==0) acc = 0;
+            acc += A[j] * j;
+            if(j==19) {
+                if (i%2 == 0)
+                    B[i] = acc / 20;
+                else
+                    B[i] = 0;
+            }
+        }
+    }
+</code></pre>
+<ul>
+<li>
+<p>循环可以没有label，HLS会生成默认label。</p>
+</li>
+<li>
+<p>循环上限为变量的优化方法： <strong>使用条件语句</strong>。</p>
+</li>
+</ul>
+<pre><code class="language-C++">  LOOP_X:for (x=0;x&lt;N-1; x++) {
+    if (x&lt;width) {
+      out_accum += A[x];
+    }
+  }
+</code></pre>
+<ul>
+<li>可以利用两个独立的模块来压缩流水的II （用模版实现较为方便，需要配合上多路选择器）</li>
+</ul>
+<pre><code class="language-C++">//                    +--proc--&gt;[ II=2 ]--+
+//                   /                     \               
+// in --&gt;[demux II=1]                       [mux II=1]---&gt; out
+//                   \                     /
+//                    +--proc--&gt;[ II=2 ]--+
+
+#include &quot;example.h&quot;
+
+//--------------------------------------------
+template &lt;int ID&gt;
+void proc(stream&lt;int&gt; &amp;in, stream&lt;int&gt; &amp;out)
+{
+    for (int i = 0; i &lt; 25; i++)
+    {
+#pragma HLS PIPELINE II=2
+#pragma HLS LATENCY min=2 max=2
+        int var;
+        in.read(var);
+        out.write(var);
+    }
+}
+
+//--------------------------------------------
+void mux(stream&lt;int&gt; (&amp;inter)[2], stream&lt;int&gt; &amp;mux_output)
+{
+    int mux_sel = 0;
+    for (int i = 0; i &lt; 50; i++)
+    {
+#pragma HLS PIPELINE II=1
+        int var;
+        inter[mux_sel].read(var);
+        mux_output.write(var);
+        mux_sel = (mux_sel == 0) ? (1) : (0);
+    }
+}
+
+//--------------------------------------------
+void demux(stream&lt;int&gt; &amp;in, stream&lt;int&gt; (&amp;inter)[2])
+{
+    int demux_sel = 0;
+    for (int i = 0; i &lt; 50; i++)
+    {
+#pragma HLS PIPELINE II=1
+
+        int var;
+        in.read(var);
+        inter[demux_sel].write(var);
+        demux_sel = (demux_sel == 0) ? 1 : 0;
+    }
+}
+
+void example(stream&lt;int&gt; &amp;in, stream&lt;int&gt; &amp;out)
+{
+#pragma HLS DATAFLOW
+
+    stream&lt;int&gt; inter[2];
+    stream&lt;int&gt; mux_in[2];
+
+#pragma HLS STREAM variable = inter depth = 16
+#pragma HLS STREAM variable = mux_in depth = 16
+
+    demux(in, inter);
+    proc&lt;0&gt;(inter[0], mux_in[0]);
+    proc&lt;1&gt;(inter[1], mux_in[1]);
+    mux(mux_in, out);
+}
+</code></pre>
 ]]></content>
     </entry>
     <entry>
@@ -1532,47 +1749,6 @@ fn bar&lt;const N: usize&gt;() -&gt; Foo&lt;{ N }&gt; { todo!() } // ok
 <h2 id="总结">总结</h2>
 <p>这篇文章主要是了解了const 泛型在做啥，以及如何做的。</p>
 <p>通过这个简单的例子，我感觉const 泛型是用在当泛型需要有取值的时候（比如这里的unit就需要取值，而不能每一个单位一个类型...）。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[ Rust 异步并发（一）]]></title>
-        <id>https://Busy-Bob.github.io/post/rust-yi-bu/</id>
-        <link href="https://Busy-Bob.github.io/post/rust-yi-bu/">
-        </link>
-        <updated>2020-11-22T15:07:53.000Z</updated>
-        <summary type="html"><![CDATA[<p>前一段时间看了一些关于Rust的异步编程相关的知识，受益匪浅，故做此记录。<br>
-Rust异步编程是Rust语言中十分重要特性。现在Rust中的异步编程采用<code>async/.await</code>解决方案。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>前一段时间看了一些关于Rust的异步编程相关的知识，受益匪浅，故做此记录。<br>
-Rust异步编程是Rust语言中十分重要特性。现在Rust中的异步编程采用<code>async/.await</code>解决方案。</p>
-<!-- more -->
-<h1 id="1-为什么需要异步编程">1. 为什么需要异步编程？</h1>
-<p>刚开始一直有一个疑问：<strong>既然已经有了多线程技术，多用户访问直接使用多线程，为什么还需要异步呢？</strong> 后来终于明白，异步是用在多用户<strong>同时处理同一资源</strong>时候发挥作用的。</p>
-<pre><code>现在用100个用户同时修改一个文件来举例：
-</code></pre>
-<ul>
-<li>
-<p><strong>同步</strong>(一般也是<strong>阻塞</strong>)： 程序需要实现<strong>读写锁(<code>std::sync::RwLock</code>)<strong>或</strong>互斥锁(<code>std::sync::Mutex</code>)</strong>，程序会同时产生100个线程，但是只能有一个线程拥有写锁，其他的99个线程均</p>
-<ul>
-<li>处于<strong>等待状态</strong>，线程不会sleep，会循环获取锁(自旋锁Spinlock)。
-<ul>
-<li>阻塞的线程还来参与操作系统的抢占式调度，很不科学！为什么不先排好队，用一个线程呢（这也是协程干的事）</li>
-</ul>
-</li>
-<li>或者有起始的<strong>加锁开销</strong>(通常是对互斥锁：①线程会从sleep（加锁）——&gt;running（解锁），过程中有上下文的切换，cpu的抢占，信号的发送等开销；②互斥锁在sleep时会陷入到内核态，需要昂贵的系统调用；线程向操作系统请求被挂起是通过一个系统调用，在linux上的实现就是futex)。</li>
-</ul>
-</li>
-<li>
-<p><strong>异步</strong>(一般也是<strong>非阻塞</strong>)： 将100个线程根据一定的先后次序<strong>合并成一个线程</strong>(也可能是多个线程？)， 就可以避免锁的产生，从而减少操作系统对线程调用的开销。但是，当线程之间对资源的依赖关系比较复杂的时候，程序的编写就会<strong>十分复杂</strong>。</p>
-<ul>
-<li><strong>协程</strong>(coroutine)： 实现异步编程的一种方式，是在线程之下的一个单位。协程是语言层面控制数据流的一种“调度”（处理公共资源的时候，相当于<strong>用户态的锁</strong>）， 线程是操作系统层面的“调度”（处理公共资源，使用<strong>操作系统或者硬件的锁(即Mutex或者Spinlock)</strong>）。协程的调度是编译器通过组织运算顺序实现的（通过生成器（等同于一个状态机）实现），线程是通过操作系统来进行抢占式调度的。</li>
-<li><a href="https://zh.wikipedia.org/wiki/%E5%8D%8F%E7%A8%8B">协程wiki</a>：协程非常类似于线程。但是协程是协作式多任务的，而线程典型是抢占式多任务的。这意味着协程提供并发性而非并行性。协程超过线程的好处是它们可以用于硬性实时的语境（在协程之间的切换不需要涉及任何系统调用或任何阻塞调用），这里不需要用来守卫关键区块的同步性原语（primitive）比如互斥锁、信号量等，并且不需要来自操作系统的支持。</li>
-<li><a href="https://www.zhihu.com/question/332113890/answer/1052024052">互斥锁（mutex）的底层原理是什么？</a></li>
-<li><a href="https://www.zhihu.com/question/50185085/answer/1342613525">出于什么样的原因，诞生了「协程」这一概念？</a></li>
-</ul>
-</li>
-</ul>
-<p>所以，异步编程是可以直接用复杂的代码结构直接写出来的。比如上面的例子就是在一个线程里面去依次读写100次。而Rust的<code>async/.await</code>解决方案做的工作是 <strong>“将复杂的异步代码 ===&gt; 利用语法糖 ===&gt; 转化为类似于同步的代码(更容易coding)”</strong>  即 <strong>“用同步的语义解决异步问题”</strong> 。</p>
 ]]></content>
     </entry>
 </feed>
