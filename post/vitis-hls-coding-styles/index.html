@@ -8,7 +8,7 @@
 <meta name="keywords" content="勺海的个人博客">
 <meta name="description" content="尽应尽之事，做让自己开心的事。">
 <meta name="theme-color" content="#000">
-<title>勺海的博客</title>
+<title>Vitis HLS Coding Styles | 勺海的博客</title>
 <link rel="shortcut icon" href="/favicon.ico?v=1609833209257">
 <link rel="stylesheet" href="/styles/main.css">
 <link rel="stylesheet" href="/media/css/pisces.css">
@@ -29,6 +29,8 @@
 
 
 
+  <meta name="description" content="Vitis HLS Coding Styles" />
+  <meta name="keywords" content="Verilog,HLS,FPGA" />
 </head>
 
 <body>
@@ -136,10 +138,26 @@
   <div class="main-continer">
     
     <div
-      class="section-layout  pisces">
+      class="section-layout pisces ">
       <div class="section-layout-wrapper">
-        <div id="sidebarMeta" class="sidebar">
-    
+        
+
+<div class="sidebar">
+  
+    <div class="sidebar-box box-shadow-wrapper bg-color right-motion" id="sidebar">
+      
+        <div class="post-list-sidebar">
+          <div class="sidebar-title">
+            <span id="tocSideBar" class="sidebar-title-item sidebar-title-active">文章目录</span>
+            <span id="metaSideBar" class="sidebar-title-item">站点概览</span>
+          </div>
+        </div>
+      
+      <div class="sidebar-body pisces" id="sidebar_body">
+        
+          
+            <div class="post-side-meta" id="post_side_meta">
+              
 <div class="sidebar-wrapper box-shadow-wrapper bg-color">
   <div class="sidebar-item">
     <img class="site-author-image right-motion" src="/images/avatar.png"/>
@@ -202,131 +220,1085 @@
 
 
 </div>
+            </div>
+            <div class="post-toc sidebar-body-active" id="post_toc" style="opacity: 1;">
+              <div class="toc-box right-motion">
+  <div class="toc-wrapper auto-number auto"
+    id="toc_wrapper">
+    <ul class="markdownIt-TOC">
+<li><a href="#%E4%B8%8D%E6%94%AF%E6%8C%81%E7%9A%84cc%E9%83%A8%E5%88%86">不支持的C/C++部分</a>
+<ul>
+<li><a href="#%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8">系统调用</a></li>
+<li><a href="#%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98">动态内存</a></li>
+<li><a href="#%E6%8C%87%E9%92%88%E7%9A%84%E4%B8%80%E4%BA%9B%E9%99%90%E5%88%B6">指针的一些限制</a>
+<ul>
+<li><a href="#%E9%80%9A%E7%94%A8%E6%8C%87%E9%92%88%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2">通用指针类型转换</a></li>
+<li><a href="#%E6%8C%87%E9%92%88%E6%95%B0%E7%BB%84">指针数组</a></li>
+<li><a href="#%E5%87%BD%E6%95%B0%E6%8C%87%E9%92%88">函数指针</a></li>
+</ul>
+</li>
+<li><a href="#%E9%80%92%E5%BD%92%E5%87%BD%E6%95%B0">递归函数</a></li>
+<li><a href="#stl">STL</a></li>
+</ul>
+</li>
+<li><a href="#%E5%87%BD%E6%95%B0">函数</a>
+<ul>
+<li><a href="#%E5%86%85%E8%81%94%E5%87%BD%E6%95%B0">内联函数</a></li>
+<li><a href="#%E4%BB%A3%E7%A0%81%E9%A3%8E%E6%A0%BC%E7%9A%84%E5%BD%B1%E5%93%8D">代码风格的影响</a></li>
+<li><a href="#cc%E5%86%85%E7%BD%AE%E5%87%BD%E6%95%B0">C/C++内置函数</a></li>
+</ul>
+</li>
+<li><a href="#%E5%BE%AA%E7%8E%AF">循环</a>
+<ul>
+<li><a href="#%E5%BE%AA%E7%8E%AF%E5%8F%98%E9%87%8F%E8%8C%83%E5%9B%B4">循环变量范围</a></li>
+<li><a href="#%E5%B0%86%E5%BE%AA%E7%8E%AF%E6%B5%81%E6%B0%B4%E7%BA%BF%E5%8C%96">将循环流水线化</a>
+<ul>
+<li><a href="#%E4%B8%8D%E5%AE%8C%E7%BE%8E%E7%9A%84%E5%BE%AA%E7%8E%AF%E5%B5%8C%E5%A5%97">不完美的循环嵌套</a></li>
+</ul>
+</li>
+<li><a href="#%E5%BE%AA%E7%8E%AF%E5%B9%B6%E8%A1%8C">循环并行</a></li>
+<li><a href="#%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96">循环依赖</a></li>
+<li><a href="#%E5%9C%A8c%E7%B1%BB%E4%B8%AD%E4%B8%8D%E4%BC%9A%E5%B1%95%E5%BC%80%E5%BE%AA%E7%8E%AF">在c++类中不会展开循环</a></li>
+</ul>
+</li>
+<li><a href="#%E6%95%B0%E7%BB%84">数组</a>
+<ul>
+<li><a href="#%E6%95%B0%E7%BB%84%E8%AE%BF%E9%97%AE%E5%92%8C%E6%80%A7%E8%83%BD">数组访问和性能</a>
+<ul>
+<li><a href="#fifo%E8%AE%BF%E9%97%AE">FIFO访问</a></li>
+</ul>
+</li>
+<li><a href="#%E6%8E%A5%E5%8F%A3%E4%B8%8A%E7%9A%84%E6%95%B0%E7%BB%84top%E5%87%BD%E6%95%B0%E5%8F%82%E6%95%B0">接口上的数组（top函数参数）</a></li>
+<li><a href="#%E6%95%B0%E7%BB%84%E5%88%9D%E5%A7%8B%E5%8C%96">数组初始化</a>
+<ul>
+<li><a href="#%E5%AE%9E%E4%BE%8B%E5%8C%96%E4%B8%80%E4%B8%AArom">实例化一个ROM</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B">数据类型</a>
+<ul>
+<li><a href="#cc-%E7%B1%BB%E5%9E%8B">C/C++ 类型</a></li>
+<li><a href="#arbitrary-precision-ap-data-types-%E4%BB%BB%E6%84%8F%E7%B2%BE%E5%BA%A6%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B">Arbitrary Precision (AP) Data Types 任意精度数据类型</a>
+<ul>
+<li><a href="#%E5%AE%9A%E7%82%B9%E6%95%B0-arbitrary-precision-fixed-point-data-types">定点数 Arbitrary Precision Fixed-Point Data Types</a></li>
+</ul>
+</li>
+<li><a href="#%E5%A4%8D%E5%90%88%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B">复合数据类型</a>
+<ul>
+<li><a href="#struct"><code>struct</code></a></li>
+<li><a href="#enum"><code>enum</code></a></li>
+<li><a href="#unions"><code>unions</code></a></li>
+<li><a href="#%E7%B1%BB%E5%9E%8B%E9%99%90%E5%AE%9A%E7%AC%A6">类型限定符</a></li>
+</ul>
+</li>
+<li><a href="#%E5%85%A8%E5%B1%80%E5%8F%98%E9%87%8F">全局变量</a></li>
+<li><a href="#%E6%8C%87%E9%92%88">指针</a>
+<ul>
+<li><a href="#%E6%8E%A5%E5%8F%A3%E5%A4%84%E4%BD%BF%E7%94%A8%E6%8C%87%E9%92%88top%E5%87%BD%E6%95%B0%E7%9A%84%E5%8F%82%E6%95%B0%E4%B8%AD">接口处使用指针（top函数的参数中）</a></li>
+</ul>
+</li>
+<li><a href="#vector%E7%B1%BB%E5%9E%8B">Vector类型</a>
+<ul>
+<li><a href="#hls%E7%9A%84vector%E7%B1%BB%E5%9E%8B%E6%98%AF%E4%B8%BA%E4%BA%86simd%E6%93%8D%E4%BD%9C">HLS的Vector类型是为了SIMD操作</a></li>
+<li><a href="#vector-%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80">Vector 内存布局</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#c%E7%B1%BB%E5%92%8C%E6%A8%A1%E7%89%88">C++类和模版</a></li>
+<li><a href="#%E6%96%AD%E8%A8%80">断言</a></li>
+<li><a href="#%E9%AB%98%E6%80%A7%E8%83%BDhls">高性能HLS</a>
+<ul>
+<li><a href="#%E7%A1%AE%E4%BF%9D%E6%95%B0%E6%8D%AE%E7%9A%84%E8%BF%9E%E7%BB%AD%E6%B5%81%E5%92%8C%E6%95%B0%E6%8D%AE%E9%87%8D%E7%94%A8">确保数据的连续流和数据重用</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
 </div>
+
 <script>
-  let sidebarMeta = document.querySelector('#sidebarMeta');
-  let scheme = 'pisces';
-  let sidebarWrapper = document.querySelector('.sidebar-wrapper');
-  if (sidebarMeta && (scheme === 'pisces' || scheme === 'gemini')) {
-    document.addEventListener('scroll', function(e) {
-      if (document.scrollingElement.scrollTop > parseInt(sidebarMeta.style.marginTop) + 10) {
-        sidebarWrapper.classList.add('home-sidebar-fixed')
-      } else {
-        sidebarWrapper.classList.remove('home-sidebar-fixed')
+
+  let lastTop = 0, lList = [], hList = [], postBody, lastIndex = -1;
+  let active = 'active-show', activeClass = 'active-current';
+  let tocWrapper = document.querySelector('#toc_wrapper');
+  let tocContent = tocWrapper.children[0];
+  let autoNumber = tocWrapper && tocWrapper.classList.contains('auto-number');
+
+  function addTocNumber(elem, deep) {
+    if (!elem) {
+      return;
+    }
+    let prop = elem.__proto__;
+
+    if (prop === HTMLUListElement.prototype) {
+      for (let i = 0; i < elem.children.length; i++) {
+        addTocNumber(elem.children[i], deep + (i + 1) + '.');
       }
+    } else if (prop === HTMLLIElement.prototype) {
+      // 保存li元素
+      if (elem.children[0].__proto__ === HTMLAnchorElement.prototype) {
+        lList.push(elem);
+      }
+      for (let i = 0; i < elem.children.length; i++) {
+        let cur = elem.children[i];
+        if (cur.__proto__ === HTMLAnchorElement.prototype) {
+          if (autoNumber) {
+            cur.text = deep + ' ' + cur.text;
+          }
+        } else if (cur.__proto__ === HTMLUListElement.prototype) {
+          addTocNumber(cur, deep);
+        }
+      }
+    }
+  }
+
+  function removeParentActiveClass() {
+    let parents = tocContent.querySelectorAll('.' + active)
+    parents.forEach(function (elem) {
+      elem.classList.remove(active);
     });
   }
-  </script>
-        <div class="section-box tag-line box-shadow-wrapper">
-          <section class="section tags-section posts-expand bg-color">
-            <div class="padding-wrapper">
-  <div class="tag-timeline-box">
-    <div class="tag-timeline-wrapper">
-      <div class="tag-timeline-title">
-        <h2>
-          异步编程
-          <small>标签</small>
-        </h2>
+
+  function addActiveClass(index) {
+    if (index >= 0 && index < hList.length) {
+      lList[index].classList.add(activeClass);
+    }
+  }
+
+  function removeActiveClass(index) {
+    if (index >= 0 && index < hList.length) {
+      lList[index].classList.remove(activeClass);
+    }
+  }
+
+  function addActiveLiElemment(elem, parent) {
+    if (!elem || elem === parent) {
+      return;
+    } else {
+      if (elem.__proto__ === HTMLLIElement.prototype) {
+        elem.classList.add(active);
+      }
+      addActiveLiElemment(elem.parentElement, parent);
+    }
+  }
+
+  function showToc() {
+    if (tocWrapper) {
+      postBody = document.querySelector('#post_body');
+      for (let i = 0; i < postBody.children.length; i++) {
+        if (postBody.children[i].__proto__ === HTMLHeadingElement.prototype) {
+          hList.push(postBody.children[i]);
+        }
+      }
+      if (tocWrapper.classList.contains('compress')) {
+        tocContent.classList.add('closed');
+      } else if (tocWrapper.classList.contains('no_compress')) {
+        tocContent.classList.add('expanded');
+      } else {
+        if (hList.length > 10) {
+          active = 'active-hidden'
+          tocContent.classList.add('closed');
+        } else {
+          tocContent.classList.add('expanded');
+        }
+      }
+    }
+  }
+
+  (function () {
+    // 处理不是从#一级标题开始目录
+    if (tocContent.children.length === 1 && tocContent.children[0].__proto__ === HTMLLIElement.prototype) {
+      let con = tocContent.children[0].children[0];
+      tocContent.innerHTML = con.innerHTML;
+    }
+    let markdownItTOC = document.querySelector('.markdownIt-TOC');
+    let innerHeight = window.innerHeight;
+    markdownItTOC.style = `max-height: ${innerHeight - 80 > 0 ? innerHeight - 80 : innerHeight}px`
+    addTocNumber(tocContent, '');
+  })();
+
+  document.addEventListener('scroll', function (e) {
+    if (lList.length <= 0) {
+      return;
+    }
+    let scrollTop = document.scrollingElement.scrollTop + 10;
+    let dir;
+
+    if (lastTop - scrollTop > 0) {
+      dir = 'up';
+    } else {
+      dir = 'down';
+    }
+
+    lastTop = scrollTop;
+    if (scrollTop <= 0) {
+      if (lastIndex >= 0 && lastIndex < hList.length) {
+        lList[lastIndex].classList.remove(activeClass);
+      }
+      return;
+    }
+
+    let current = 0, hasFind = false;
+    for (let i = 0; i < hList.length; i++) {
+      if (hList[i].offsetTop > scrollTop) {
+        current = i;
+        hasFind = true;
+        break;
+      }
+    }
+    if (!hasFind && scrollTop > lList[lList.length - 1].offsetTop) {
+      current = hList.length - 1;
+    } else {
+      current--;
+    }
+    if (dir === 'down') {
+      if (current > lastIndex) {
+        addActiveClass(current);
+        removeActiveClass(lastIndex)
+        lastIndex = current;
+        removeParentActiveClass();
+        lList[current] && addActiveLiElemment(lList[current].parentElement, tocContent);
+      }
+    } else {
+      if (current < lastIndex) {
+        addActiveClass(current);
+        removeActiveClass(lastIndex);
+        lastIndex = current;
+        removeParentActiveClass();
+        lList[current] && addActiveLiElemment(lList[current].parentElement, tocContent);
+      }
+    }
+  });
+
+
+  window.addEventListener('load', function () {
+    showToc();
+    document.querySelector('#sidebar').style = 'display: block;';
+    tocWrapper.classList.add('toc-active');
+    setTimeout(function () {
+      if ("createEvent" in document) {
+        let evt = document.createEvent("HTMLEvents");
+        evt.initEvent("scroll", false, true);
+        document.dispatchEvent(evt);
+      }
+      else {
+        document.fireEvent("scroll");
+      }
+    }, 500)
+  })
+
+</script>
+            </div>
+          
+        
       </div>
+    </div>
+  
+</div>
+<script>
+  const SIDEBAR_TITLE_ACTIVE = 'sidebar-title-active';
+  const SIDEBAR_BODY_ACTIVE = 'sidebar-body-active';
+  const SLIDE_UP_IN = 'slide-up-in';
+
+  let sidebar = document.querySelector('#sidebar'),
+  tocSideBar = document.querySelector('#tocSideBar'),
+  metaSideBar = document.querySelector('#metaSideBar'),
+  postToc = document.querySelector('#post_toc'),
+  postSiteMeta = document.querySelector('#post_side_meta'),
+  sidebarTitle = document.querySelector('.sidebar-title'),
+  sidebarBody = document.querySelector('#sidebar_body');
+
+  tocSideBar && tocSideBar.addEventListener('click', (e) => {
+    toggleSidebar(e);
+  });
+
+  metaSideBar && metaSideBar.addEventListener('click', (e) => {
+    toggleSidebar(e);
+  });
+
+  function toggleSidebar(e) {
+    let currentTitle = document.querySelector("."+SIDEBAR_TITLE_ACTIVE);
+    if (currentTitle == e.srcElement) {
+      return ;
+    }
+    let current, showElement, hideElement;
+    if (e.srcElement == metaSideBar) {
+      showElement = postSiteMeta;
+      hideElement = postToc;
+    } else if (e.srcElement == tocSideBar){
+      showElement = postToc;
+      hideElement = postSiteMeta;
+    }
+    currentTitle.classList.remove(SIDEBAR_TITLE_ACTIVE);
+    e.srcElement.classList.add(SIDEBAR_TITLE_ACTIVE);
+
+    window.Velocity(hideElement, 'stop');
+    window.Velocity(hideElement, 'transition.slideUpOut', {
+      display: 'none',
+      duration: 200,
+      complete: function () {
+        window.Velocity(showElement, 'transition.slideDownIn', {
+          duration: 200
+        });
+      }
+    })
+    hideElement.classList.remove(SIDEBAR_BODY_ACTIVE);
+    showElement.classList.add(SIDEBAR_BODY_ACTIVE);
+  }
+
+  postToc && postToc.addEventListener('transitionend', function() {
+    this.classList.remove(SLIDE_UP_IN);
+  });
+
+  if (sidebarBody) {
+    if (sidebarBody.classList.contains('pisces') || sidebarBody.classList.contains('gemini')) {
+      let hasFix = false;
+      let scrollEl = document.querySelector('.main-continer');
+      let limitTop = document.querySelector('#nav_ul').children.length * 42 + 162;
+      window.addEventListener('scroll', function(e) {
+        if (document.scrollingElement.scrollTop >= limitTop) {
+          if (!hasFix) {
+            sidebar.classList.add('sidebar-fixed');
+            hasFix = true;
+          }
+        } else {
+          if (hasFix) {
+            sidebar.classList.remove('sidebar-fixed');
+            hasFix = false;
+          }
+        }
+      });
+    }
+  }
+  
+</script>
+        <div class="section-box box-shadow-wrapper">
+          <div class="section bg-color post post-page">
+            <header class="post-header">
+  <h1 class="post-title">
+    <a class="post-title-link" href="https://Busy-Bob.github.io/post/vitis-hls-coding-styles/">
+      Vitis HLS Coding Styles
+    </a>
+  </h1>
+  <div class="post-meta">
+    
+    <span class="meta-item pc-show">
+      <i class="fa fa-calendar-o"></i>
+      <span>发布于</span>
+      <span>2021-01-04</span>
+      <span class="post-meta-divider pc-show">|</span>
+    </span>
+    
+    <span class="meta-item">
+      <i class="fa fa-folder-o"></i>
+      <span class="pc-show">分类于</span>
+      
+      
+      <a href="https://Busy-Bob.github.io/tag/oen4TO7lh/">
+        <span>Verilog</span>
+      </a>、
       
       
       
+      <a href="https://Busy-Bob.github.io/tag/pm9HjSOZ32/">
+        <span>HLS</span>
+      </a>、
       
       
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      <a href="https://Busy-Bob.github.io/post/rust-ji-yu-hui-diao-de-yi-bu-fang-fa-fen-xi_/">
-        <div class="motion-warpper">
-          <div class="tag-post-node">
-            <h1>
-              11-30
-              <small>Rust 基于回调的异步方法分析</small>
-            </h1>
-          </div>
-        </div>
+      <a href="https://Busy-Bob.github.io/tag/9jjFooiOMM/">
+        <span>FPGA</span>
       </a>
       
       
+    </span>
+    <span class="post-meta-divider">|</span>
+    
+    <span class="meta-item">
+      <i class="fa fa-clock-o"></i>
+      <span>16分钟</span>
+    </span>
+    <span class="meta-item">
+      <span class="post-meta-divider">|</span>
+      <i class="fa fa-file-word-o"></i>
+      <span>3533<span class="pc-show">字数</span></span>
+    </span>
+    
+    
+    
+    <span id="/post/vitis-hls-coding-styles/" data-flag-title="Vitis HLS Coding Styles" class="meta-item pc-show leancloud_visitors">
+      <span class="post-meta-divider">|</span>
+      <i class="fa fa-eye"></i>
+      <span>浏览量：<span class="leancloud-visitors-count"></span></span>
+    </span>
+    
+  </div>
+</header>
+            <div class="post-body next-md-body" id="post_body">
+              <p>参考Xilinx文档，<a href="https://www.xilinx.com/html_docs/xilinx2020_2/vitis_doc/vitis_hls_coding_styles.html">Vitis HLS Coding Styles</a></p>
+<!-- more -->
+<h1 id="不支持的cc部分">不支持的C/C++部分</h1>
+<h2 id="系统调用">系统调用</h2>
+<ul>
+<li><code>printf()</code>， <code>fprintf(stdout,)</code>等不会影响算法执行的系统调用——忽略掉。</li>
+<li><code>getc()</code>, <code>time()</code>, <code>sleep()</code> 等系统调用——不被接受。</li>
+<li>可以使用<code>__SYNTHESIS__</code>宏来区分<strong>综合</strong>与<strong>调试</strong>过程</li>
+</ul>
+<pre><code class="language-c">void hier_func4(din_t A, din_t B, dout_t *C, dout_t *D)
+{
+    dint_t apb, amb;
+
+    sumsub_func(&amp;A, &amp;B, &amp;apb, &amp;amb);
+#ifndef __SYNTHESIS__
+    FILE *fp1; // The following code is ignored for synthesis
+    char filename[255];
+    sprintf(filename, Out_apb_ % 03d.dat, apb);
+    fp1 = fopen(filename, w);
+    fprintf(fp1, % d \n, apb);
+    fclose(fp1);
+#endif
+    shift_func(&amp;apb, &amp;amb, C, D);
+}
+
+</code></pre>
+<h2 id="动态内存">动态内存</h2>
+<ul>
+<li><code>malloc()</code>， <code>new</code> 等动态分配内存的不行, 不能在堆上分配内存，必须在栈上。（因为该HLS技术是静态分析）</li>
+<li>一种改动方法是直接对栈上变量取指针：</li>
+</ul>
+<pre><code class="language-C">#include &quot;malloc_removed.h&quot;
+#include &lt;stdlib.h&gt;
+//#define NO_SYNTH
+
+dout_t malloc_removed(din_t din[N], dsel_t width) {  
+
+#ifdef NO_SYNTH
+ long long *out_accum = malloc (sizeof(long long));
+ int* array_local = malloc (64 * sizeof(int));
+#else
+ long long _out_accum;
+ long long *out_accum = &amp;_out_accum;
+ int _array_local[64];
+ int* array_local = &amp;_array_local[0];
+#endif
+// 中间计算省略
+ return *out_accum;
+}
+</code></pre>
+<h2 id="指针的一些限制">指针的一些限制</h2>
+<h3 id="通用指针类型转换">通用指针类型转换</h3>
+<p>HLS 只支持C/C++原生类型的转换</p>
+<h3 id="指针数组">指针数组</h3>
+<p>如果每个指针指向一个标量或一个标量数组，则Vitis HLS支持指针数组的综合。但指针数组不能指向额外的指针（应该类似二维数组的行、列指针）</p>
+<h3 id="函数指针">函数指针</h3>
+<p>不支持</p>
+<h2 id="递归函数">递归函数</h2>
+<ul>
+<li>不支持。不管最后递归次数是不是有限的。</li>
+<li>可以使用C++模板来构造<strong>可以用来综合的尾递归</strong>，因为C++中支持非类型模板参数（Nontype Template Parameters），类似Rust中的const泛型，这儿的模板参数为<code>data_t</code>类型的一个值 N。<a href="https://github.com/Xilinx/HLS-Tiny-Tutorials/tree/master/algorithm_template_fir_filter">例子如下</a>：</li>
+</ul>
+<pre><code class="language-C++">// Tail recursive call
+template&lt;data_t N&gt; 
+	struct fibon_s {
+    template&lt;typename T&gt;
+    static T fibon_f(T a, T b) {
+		return fibon_s&lt;N-1&gt;::fibon_f(b, (a+b));
+  }
+};
+
+// Termination condition
+template&lt;&gt; struct fibon_s&lt;1&gt; {
+  template&lt;typename T&gt;
+  static T fibon_f(T a, T b) {
+    return b;
+  }
+};
+
+void cpp_template(data_t a, data_t b, data_t &amp;dout){
+  dout = fibon_s&lt;FIB_N&gt;::fibon_f(a,b);
+}
+</code></pre>
+<h2 id="stl">STL</h2>
+<p>有动态内存和递归，不能使用。</p>
+<h1 id="函数">函数</h1>
+<p>顶层函数不能是静态的。</p>
+<h2 id="内联函数">内联函数</h2>
+<ul>
+<li>综合时候花费时间、内存较多，但效果更好。</li>
+<li>没有独立的RTL文件和报告了。</li>
+</ul>
+<h2 id="代码风格的影响">代码风格的影响</h2>
+<ul>
+<li>影响函数参数和接口</li>
+<li>直接用函数接口的输入量来驱动变量时候，程序就不会使用某些优化手段。（如输入量是循环索引的上限）</li>
+</ul>
+<pre><code class="language-C++">#include &quot;ap_int.h&quot;
+
+ap_int&lt;24&gt; foo(int x, int y) {  
+ int tmp;
+
+ tmp = (x * y);
+ return tmp
+} 
+</code></pre>
+<p>上述代码这会导致一个32-bit乘法器，输出再被截取。<br>
+下面这个代码直接产生一个24-bit乘法器。</p>
+<pre><code class="language-C++">#include &quot;ap_int.h&quot;
+typedef ap_int&lt;12&gt; din_t;
+typedef ap_int&lt;24&gt; dout_t;
+
+dout_t func_sized(din_t x, din_t y) {  
+ int tmp;
+
+ tmp = (x * y);
+ return tmp
+}
+</code></pre>
+<h2 id="cc内置函数">C/C++内置函数</h2>
+<ul>
+<li>只支持以下两个</li>
+<li><code>__builtin_clz(unsigned int x)</code>: Returns the number of leading 0-bits in x, starting at the most significant bit position. If x is 0, the result is undefined.</li>
+<li><code>__builtin_ctz(unsigned int x)</code>: Returns the number of trailing 0-bits in x, starting at the least significant bit position. If x is 0, the result is undefined.</li>
+</ul>
+<h1 id="循环">循环</h1>
+<ul>
+<li>支持得很好。可以切流水线，展开、部分展开、合并和扁平化</li>
+<li><strong>不要使用全局变量作为循环变量</strong>，否则会阻碍代码优化</li>
+</ul>
+<h2 id="循环变量范围">循环变量范围</h2>
+<ul>
+<li>循环变量的上限如果是变量，就难以在综合时候优化。</li>
+<li>循环变量的上限如果是变量，循环的latency无法确定。</li>
+<li>循环变量的上限如果是变量，设计的性能未知。</li>
+</ul>
+<pre><code class="language-C++">#include &quot;ap_int.h&quot;
+#define N 32
+
+typedef ap_int&lt;8&gt; din_t;
+typedef ap_int&lt;13&gt; dout_t;
+typedef ap_uint&lt;5&gt; dsel_t;
+
+dout_t code028(din_t A[N], dsel_t width) {  
+
+ dout_t out_accum=0;
+ dsel_t x;
+
+ LOOP_X:for (x=0;x&lt;width; x++) {
+ out_accum += A[x];
+ }
+
+ return out_accum;
+}
+</code></pre>
+<p>为了克服无法分析性能的缺点，一般是加上<br>
+<code>#pragma HLS loop_tripcount min=&lt;int&gt; max=&lt;int&gt; avg=&lt;int&gt;</code><br>
+或者是使用断言<code>assert</code></p>
+<pre><code class="language-C++">void foo (num_samples, ...) {
+  int i;
+  ...
+  loop_1: for(i=0;i&lt; num_samples;i++) {
+   #pragma HLS loop_tripcount min=12 max=16
+   ...
+    result = a + b;
+  }
+}
+</code></pre>
+<p><strong>注意</strong>：该编译选项只用于分析，不会用于综合。</p>
+<ul>
+<li><strong>对于具有可变边界的循环的解决方案是：在循环中有条件地执行，并且令循环迭代的次数为固定值。</strong></li>
+</ul>
+<pre><code class="language-C++">#include &quot;ap_int.h&quot;
+#define N 32
+
+typedef ap_int&lt;8&gt; din_t;
+typedef ap_int&lt;13&gt; dout_t;
+typedef ap_uint&lt;5&gt; dsel_t;
+
+dout_t loop_max_bounds(din_t A[N], dsel_t width) {  
+
+ dout_t out_accum=0;
+ dsel_t x;
+
+ LOOP_X:for (x=0; x&lt;N; x++) {
+ if (x&lt;width) {
+  out_accum += A[x];
+ }
+ }
+
+ return out_accum;
+}
+</code></pre>
+<h2 id="将循环流水线化">将循环流水线化</h2>
+<p>通常通过流水线最内层的循环来找到面积和性能之间的最佳平衡。</p>
+<pre><code class="language-C++">#include &quot;loop_pipeline.h&quot;
+
+dout_t loop_pipeline(din_t A[N]) {  
+
+ int i,j;
+ static dout_t acc;
+
+ LOOP_I:for(i=0; i &lt; 20; i++){
+ LOOP_J: for(j=0; j &lt; 20; j++){
+ acc += A[i] * j;
+ }
+ }
+
+ return acc;
+}
+</code></pre>
+<ul>
+<li>
+<p>Pipeline <code>LOOP_J</code></p>
+<ul>
+<li>只需调度一个乘法器操作和一个数组访问</li>
+<li>Latency is approximately 400 cycles (20x20) and requires less than 100 LUTs and registers (the I/O control and FSM are always present).</li>
+</ul>
+</li>
+<li>
+<p>Pipeline <code>LOOP_I</code></p>
+<ul>
+<li>内部循环展开20次。</li>
+<li>需调度20个乘法器操作和20个数组访问</li>
+<li>Latency is approximately 20 cycles but requires a few hundred LUTs and registers. About 20 times the logic as first option, minus any logic optimizations that can be made.</li>
+</ul>
+</li>
+<li>
+<p>Pipeline <code>function loop_pipeline</code></p>
+<ul>
+<li>需调度400个乘法器操作和400个数组访问</li>
+<li>Latency is approximately 10 (20 dual-port accesses) but requires thousands of LUTs and registers (about 400 times the logic of the first option minus any optimizations that can be made)</li>
+</ul>
+</li>
+</ul>
+<h3 id="不完美的循环嵌套">不完美的循环嵌套</h3>
+<p>不完美的循环嵌套，或者无法将循环嵌套展开，会导致进入和退出循环的额外时钟周期。</p>
+<h2 id="循环并行">循环并行</h2>
+<ul>
+<li>HLS会使得逻辑和函数并行，但是并不会调度循环来并行。</li>
+<li>例子中SUM_X和SUM_Y不会并行调度，而是顺序的。（因为两个循环变量有不同的上限）</li>
+</ul>
+<pre><code class="language-C++">#include &quot;loop_sequential.h&quot;
+
+void loop_sequential(din_t A[N], din_t B[N], dout_t X[N], dout_t Y[N], 
+ dsel_t xlimit, dsel_t ylimit) {  
+
+ dout_t X_accum=0;
+ dout_t Y_accum=0;
+ int i,j;
+
+ SUM_X:for (i=0;i&lt;xlimit; i++) {
+ X_accum += A[i];
+ X[i] = X_accum;
+}
+
+ SUM_Y:for (i=0;i&lt;ylimit; i++) {
+ Y_accum += B[i];
+ Y[i] = Y_accum;
+ }
+} 
+</code></pre>
+<p>把两个循环装在function里面就可以并行了</p>
+<pre><code class="language-C++">#include &quot;loop_functions.h&quot;
+
+void sub_func(din_t I[N], dout_t O[N], dsel_t limit) {
+ int i;
+ dout_t accum=0;
+  
+ SUM:for (i=0;i&lt;limit; i++) {
+ accum += I[i];
+ O[i] = accum;
+ }
+
+}
+
+void loop_functions(din_t A[N], din_t B[N], dout_t X[N], dout_t Y[N], 
+ dsel_t xlimit, dsel_t ylimit) {
+
+ sub_func(A,X,xlimit);
+ sub_func(B,Y,ylimit);
+}
+</code></pre>
+<ul>
+<li>这是在函数中捕获循环以利用并行性的原则</li>
+</ul>
+<h2 id="循环依赖">循环依赖</h2>
+<ul>
+<li>一次循环开始可能会依赖上一次循环的结束。</li>
+</ul>
+<pre><code class="language-C++"> Minim_Loop: while (a != b) { 
+ if (a &gt; b) 
+ a -= b; 
+ else 
+ b -= a;
+ }
+</code></pre>
+<ul>
+<li>解决方案是<strong>尽量确保初始操作尽早执行</strong>(应该就是对循环变量做修改等)</li>
+</ul>
+<h2 id="在c类中不会展开循环">在c++类中不会展开循环</h2>
+<ul>
+<li>应小心确保循环归纳变量不是类的数据成员，因为这会防止循环被展开。</li>
+</ul>
+<pre><code class="language-C++">template &lt;typename T0, typename T1, typename T2, typename T3, int N&gt;
+class foo_class
+{
+private:
+    pe_mac&lt;T0, T1, T2&gt; mac;
+
+public:
+    T0 areg;
+    T0 breg;
+    T2 mreg;
+    T1 preg;
+    T0 shift[N];
+    int k; // Class Member
+    T0 shift_output;
+    void exec(T1 *pcout, T0 *dataOut, T1 pcin, T3 coeff, T0 data, int col)
+    {
+    Function_label0:;
+#pragma HLS inline off
+    SRL:
+        for (k = N - 1; k &gt;= 0; --k)
+        {
+#pragma HLS unroll // Loop will fail UNROLL
+            if (k &gt; 0)
+                shift[k] = shift[k - 1];
+            else
+                shift[k] = data;
+        }
+
+        *dataOut = shift_output;
+        shift_output = shift[N - 1];
+    }
+
+    *pcout = mac.exec1(shift[4 * col], coeff, pcin);
+};
+</code></pre>
+<h1 id="数组">数组</h1>
+<ul>
+<li>仿真时候内存不够怎么办？一个妥协的方法是动态内存。</li>
+<li>定点数占用内存 &gt;  arbitrary precision type &gt; C自带类型</li>
+</ul>
+<pre><code class="language-C++">#include &quot;ap_int.h&quot;
+  
+  int i, acc; 
+#ifdef __SYNTHESIS__
+  // Use an arbitrary precision type &amp; array for synthesis
+  ap_int&lt;32&gt;  la0[10000000], la1[10000000]; 
+#else 
+  // Use an arbitrary precision type &amp; dynamic memory for simulation
+ ap_int&lt;int32&gt; *la0 = malloc(10000000  * sizeof(ap_int&lt;32&gt;));
+ ap_int&lt;int32&gt; *la1 = malloc(10000000  * sizeof(ap_int&lt;32&gt;));
+#endif
+  for (i=0 ; i &lt; 10000000; i++) { 
+      acc = acc + la0[i] + la1[i]; 
+  } 
+</code></pre>
+<ul>
+<li><strong>数组长度小于1024</strong>：实例化为FIFO</li>
+<li><strong>数组长度大于1024</strong>： 保存在block RAM或LUTRAM或UltraRAM</li>
+</ul>
+<h2 id="数组访问和性能">数组访问和性能</h2>
+<ul>
+<li>对数组访问次数越多，越会限制性能。（尤其是在一个循环中的情况）</li>
+<li>所以有如下的更改策略：</li>
+</ul>
+<pre><code class="language-C++">#include &quot;array_mem_bottleneck.h&quot;
+ 
+dout_t array_mem_bottleneck(din_t mem[N]) {  
+
+ dout_t sum=0;
+ int i;
+
+ SUM_LOOP:for(i=2;i&lt;N;++i)
+   sum += mem[i] + mem[i-1] + mem[i-2];
+    
+ return sum;
+}
+</code></pre>
+<p>变成</p>
+<pre><code class="language-C++">#include &quot;array_mem_perform.h&quot;
+ 
+dout_t array_mem_perform(din_t mem[N]) {  
+
+ din_t tmp0, tmp1, tmp2;
+ dout_t sum=0;
+ int i;
+
+ tmp0 = mem[0];
+ tmp1 = mem[1];
+ SUM_LOOP:for (i = 2; i &lt; N; i++) { 
+ tmp2 = mem[i];
+ sum += tmp2 + tmp1 + tmp0;
+ tmp0 = tmp1;
+ tmp1 = tmp2;
+ } 
+    
+ return sum;
+}
+</code></pre>
+<h3 id="fifo访问">FIFO访问</h3>
+<p>因为是先入先出，所以必须要从0开始顺序访问。</p>
+<h2 id="接口上的数组top函数参数">接口上的数组（top函数参数）</h2>
+<p>HLS会默认会将接口上数组认为是内存。HLS有两种假设的实现方式</p>
+<ul>
+<li><strong>off-chip的内存</strong>：</li>
+<li><strong>标准的block RAM，延迟只有1clock</strong>： 数据会在地址给定后一个周期准备好。</li>
+</ul>
+<p>所以需要：</p>
+<ul>
+<li>指定是RAM还是FIFO的接口</li>
+<li>指定RAM是单端口还是双端口的RAM，预编译选项中的<code>storage_type</code>，语法是<a href="https://www.xilinx.com/html_docs/xilinx2020_2/vitis_doc/hls_pragmas.html#jit1504034365862__ad411155">#pragma HLS interface</a></li>
+<li>指定RAM延时， <code>latency</code></li>
+<li>ARRAY_PARTITION, ARRAY_RESHAPE 两个优化输入的命令。语法是<a href="https://www.xilinx.com/html_docs/xilinx2020_2/vitis_doc/hls_pragmas.html?#ariaid-title4">#pragma HLS array_partition</a>， 相当于<strong>用寄存器代替RAM</strong>，或者用更小的RAM来代替大的RAM。</li>
+</ul>
+<p><strong>默认情况下</strong>：</p>
+<ul>
+<li>默认是单端口的RAM。</li>
+<li>如果initiation interval or latency可以被减少，则使用双端口的RAM</li>
+</ul>
+<h2 id="数组初始化">数组初始化</h2>
+<ul>
+<li>建议使用<code>static</code>关键字来建立数组，保证HLS将其变成内存。</li>
+<li>确保初始化大内存不会造成操作开销。不用static会在初始化时候，写入这些值，有一定时间开销。</li>
+</ul>
+<h3 id="实例化一个rom">实例化一个ROM</h3>
+<ul>
+<li>建议使用<code>const</code>来做一个只读的ROM，如果不加，也没有问题。综合过程自己会进行优化。</li>
+</ul>
+<h1 id="数据类型">数据类型</h1>
+<h2 id="cc-类型">C/C++ 类型</h2>
+<p>略</p>
+<h2 id="arbitrary-precision-ap-data-types-任意精度数据类型">Arbitrary Precision (AP) Data Types 任意精度数据类型</h2>
+<ul>
+<li><strong>C语言可以这样写</strong></li>
+</ul>
+<pre><code class="language-C++">#include &quot;types.h&quot;
+
+typedef int6 dinA_t;
+typedef int12 dinB_t;
+typedef int22 dinC_t;
+typedef int33 dinD_t;
+typedef int18 dout1_t;
+typedef uint13 dout2_t;
+typedef int22 dout3_t;
+typedef int6 dout4_t;
+</code></pre>
+<ul>
+<li><strong>C++模版这样写</strong>，还有一个好处是可以定义超大的数</li>
+</ul>
+<pre><code class="language-C++">#include &quot;ap_int.h&quot;
+void foo_top (…) {
+  
+ ap_int&lt;9&gt;  var1;           // 9-bit
+ ap_uint&lt;10&gt;  var2;         // 10-bit unsigned
+</code></pre>
+<h3 id="定点数-arbitrary-precision-fixed-point-data-types">定点数 Arbitrary Precision Fixed-Point Data Types</h3>
+<pre><code class="language-C++">#include &lt;ap_fixed.h&gt;
+...
+ap_fixed&lt;18,6,AP_RND &gt; my_type;
+...
+ap_fixed&lt;2, 0&gt; a = -0.5;    // a can be -0.5,
+ap_ufixed&lt;1, 0&gt; x = 0.5;    // 1-bit representation. x can be 0 or 0.5
+ap_ufixed&lt;1, -1&gt; y = 0.25;  // 1-bit representation. y can be 0 or 0.25
+const ap_fixed&lt;1, -7&gt; z = 1.0/256;  // 1-bit representation for z = 2^-8
+</code></pre>
+<p>四个泛型参数分别为，见<a href="https://www.xilinx.com/html_docs/xilinx2020_2/vitis_doc/use_arbitrary_precision_data_type.html#guo1585572335601">Fixed-Point Identifier Summary</a>：</p>
+<ul>
+<li>总长度</li>
+<li>整数位数（可以为负数，见例子）</li>
+<li>量化模式</li>
+<li>溢出饱和位数量</li>
+</ul>
+<h2 id="复合数据类型">复合数据类型</h2>
+<h3 id="struct"><code>struct</code></h3>
+<ul>
+<li>默认成员是分解的。<strong>结构体的数组实现为多个数组</strong>，结构体的每个成员都有一个单独的数组。</li>
+<li>利用pragma指令控制是否分解。</li>
+</ul>
+<h3 id="enum"><code>enum</code></h3>
+<p>略</p>
+<h3 id="unions"><code>unions</code></h3>
+<ul>
+<li>HLS综合并不保证使用相同的内存或者寄存器</li>
+</ul>
+<h3 id="类型限定符">类型限定符</h3>
+<ul>
+<li><code>volatile</code>：
+<ul>
+<li>综合不会进行优化</li>
+<li>Arbitrary precision types do not support the volatile qualifier（计算时候）</li>
+</ul>
+</li>
+<li><code>static</code>：
+<ul>
+<li>RTL等价是寄存器、触发器和内存。</li>
+<li>config_rtl 需要配置，不然默认复位不会初始化。</li>
+</ul>
+</li>
+<li><code>const</code>：
+<ul>
+<li>常量或者ROM</li>
+</ul>
+</li>
+</ul>
+<h2 id="全局变量">全局变量</h2>
+<p>自由使用，但是只存在该ip核内部。</p>
+<h2 id="指针">指针</h2>
+<p>可以综合，但尽量避免使用。尤其是以下情况：</p>
+<ul>
+<li>同一个函数中，一个指针被读写多次</li>
+<li>指针类型转换仅限C/C++标准类型</li>
+</ul>
+<h3 id="接口处使用指针top函数的参数中">接口处使用指针（top函数的参数中）</h3>
+<ul>
+<li>基本指针：
+<ul>
+<li>指针可以合成为一个简单的<strong>线接口</strong>或使用握手的接口协议。</li>
+<li>要合成一个FIFO接口，指针必须是只读或只写的。</li>
+</ul>
+</li>
+<li>指针运算：
+<ul>
+<li>不能实现，不能实现无序访问。</li>
+<li>需要变成数组，用RAM实现。</li>
+</ul>
+</li>
+<li>流数据
+<ul>
+<li>C++ 编译器可能会优化指针的访问，所以需要加volatile。</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-C++">#include &quot;pointer_stream_good.h&quot;
+
+void pointer_stream_good ( volatile dout_t *d_o,  volatile din_t *d_i) {
+ din_t acc = 0;
+
+ acc += *d_i;
+ acc += *(d_i+1);
+ *d_o = acc;
+ acc += *(d_i+2);
+ acc += *(d_i+3);
+ *(d_o+1) = acc;
+} 
+</code></pre>
+<h2 id="vector类型">Vector类型</h2>
+<h3 id="hls的vector类型是为了simd操作">HLS的Vector类型是为了SIMD操作</h3>
+<ul>
+<li>single-instruction multiple-data (SIMD)： 单指令，多数据。</li>
+<li>Vitis HLS提供的一个模版类型<code>hls::vector&lt;T, N&gt;</code>: 一个有N个T类型的元素，T必须重载了数学运算。</li>
+<li>最佳性能是在<strong>T的位宽</strong>和<strong>N的值</strong>均为2的幂时。</li>
+<li>在<code>hls::vector</code>上的运算操作都会被并行化，所以矩阵运算一般使用这个。</li>
+</ul>
+<pre><code class="language-C++">#include &lt;hls_vector.h&gt;
+hls::vector&lt;T,N&gt;  aVec;
+</code></pre>
+<h3 id="vector-内存布局">Vector 内存布局</h3>
+<ul>
+<li>Vctor储存是对齐到2的n次方的。所以性能最好的时候是大小和位宽都为2的幂的时候。</li>
+<li>实现方式如下：</li>
+</ul>
+<pre><code class="language-C++">constexpr size_t gp2(size_t N)
+{
+    return (N &gt; 0 &amp;&amp; N % 2 == 0) ? 2 * gp2(N / 2) : 1;
+}
+ 
+template&lt;typename T, size_t N&gt; class alignas(gp2(sizeof(T) * N)) vector
+{
+    std::array&lt;T, N&gt; data;
+};
+</code></pre>
+<h1 id="c类和模版">C++类和模版</h1>
+<ul>
+<li>类是完全支持的。</li>
+<li>不建议在类中使用全局变量，会阻碍优化</li>
+<li>模版是支持的。但不能作为顶层函数。</li>
+</ul>
+<h1 id="断言">断言</h1>
+<ul>
+<li>断言可以用在综合中，提供范围的信息。如循环上限等。（不像tripcount 只能用于分析）</li>
+</ul>
+<h1 id="高性能hls">高性能HLS</h1>
+<ul>
+<li>是最大程度地减少对顶层函数参数的访问。</li>
+<li>在阵列中设置默认值会花费时钟周期和性能。</li>
+<li>多次读取和重新读取数据会消耗时钟周期和性能。</li>
+<li>以任意或随机访问方式访问数据要求将数据存储在本地数组中，浪费资源。</li>
+</ul>
+<h2 id="确保数据的连续流和数据重用">确保数据的连续流和数据重用</h2>
+<ul>
+<li>将数据从CPU或系统内存传输到FPGA，则通常会以<strong>流传输方式</strong>进行传输。从FPGA传输回系统的数据也应以这种方式执行。</li>
+<li><code>hls::stream</code> , 顺序访问，表现为一个无限深度的FIFO。</li>
+<li>在CPU体系结构中，通常避免有条件或分支操作。当程序需要分支时，它将丢失存储在CPU提取管线中的所有指令。<strong>在FPGA体系结构中，每个条件分支的硬件中已经存在一条单独的路径，并且不会与流水线任务内部的分支相关的性能下降。这只是选择要使用哪个分支的一种情况。</strong></li>
+<li><a href="https://www.xilinx.com/html_docs/xilinx2020_2/vitis_doc/hls_pragmas.html">HLS Pragmas</a>的使用。</li>
+</ul>
+
+            </div>
+            <div class="post-footer">
+  <ul class="post-copyright">
+    <li class="post-copyright-author">
+      <strong>本文作者：</strong>
+      勺海
+    </li>
+    <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://Busy-Bob.github.io/post/vitis-hls-coding-styles/" title="Vitis HLS Coding Styles">https://Busy-Bob.github.io/post/vitis-hls-coding-styles/</a>
+    </li>
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong>
+      本博客所有文章除特别声明外，均采用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i> BY-NC-SA</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+  <div class="tags">
+    
+      <a href="https://Busy-Bob.github.io/tag/oen4TO7lh/"># Verilog</a>
+    
+      <a href="https://Busy-Bob.github.io/tag/pm9HjSOZ32/"># HLS</a>
+    
+      <a href="https://Busy-Bob.github.io/tag/9jjFooiOMM/"># FPGA</a>
+    
+  </div>
+  <div class="nav">
+    <div class="nav-prev">
       
+    </div>
+    <div class="nav-next">
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      <a href="https://Busy-Bob.github.io/post/rust-yi-bu/">
-        <div class="motion-warpper">
-          <div class="tag-post-node">
-            <h1>
-              11-22
-              <small> Rust 异步并发（一）</small>
-            </h1>
-          </div>
-        </div>
-      </a>
-      
-      
-      
-      
-      
-      
-      
-      
+        <a class="nav-pc-next" title="👨👩💏五周年啦~🥂🍻" href="https://Busy-Bob.github.io/post/wu-zhou-nian-la/">👨👩💏五周年啦~🥂🍻</a>
+        <a class="nav-mobile-next" title="👨👩💏五周年啦~🥂🍻" href="https://Busy-Bob.github.io/post/wu-zhou-nian-la/">下一篇</a>
+        <i class="fa fa-chevron-right"></i>
       
     </div>
   </div>
 </div>
-          </section>
+            
+  
+    
+      <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+  var gitalk = new Gitalk({
+    clientID: 'e32c230de13db368ea78',
+    clientSecret: '80f8c1d8fb3370a0c9df34a96b46d0d083867ac7',
+    repo: 'Busy-Bob.github.io',
+    owner: 'Busy-Bob',
+    admin: ['Busy-Bob'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+  gitalk.render('gitalk-container')
+</script>
+    
+    
+  
+
+          </div>
         </div>
       </div>
     </div>
@@ -496,6 +1468,36 @@
   // 代码高亮
   hljs.initHighlightingOnLoad();
 
+</script>
+    <div class="light-box" id="light_box"></div>
+<script>
+  let imgs = document.querySelectorAll('.post-body img');
+  let lightBox = document.querySelector('#light_box');
+  lightBox.addEventListener('mousedown', (e) => {
+    e.preventDefault()
+  })
+  lightBox.addEventListener('mousewheel', (e) => {
+    e.preventDefault()
+  })
+  let width = window.innerWidth * 0.8;
+  lightBox.onclick = () => {
+    let img = lightBox.querySelector('img');
+    lightBox.style = '';
+    img && img.remove();
+  }
+  imgs.forEach(item => {
+    item.onclick = function (e) {
+      let lightImg = document.createElement('img');
+      lightImg.src = this.src;
+      lightBox.style = `height: 100%; opacity: 1; background-color: rgba(0, 0, 0, 0.5);cursor: zoom-out;`;
+      lightImg.style = `width: ${width}px; border: 1px solid #fff; border-radius: 2px;`;
+      lightImg.onclick = function () {
+        lightBox.style = '';
+        this.remove();
+      }
+      lightBox.append(lightImg);
+    }
+  })
 </script>
   </div>
 </body>
@@ -2175,6 +3177,5 @@ Rust异步编程是Rust语言中十分重要特性。现在Rust中的异步编�
 
 
 <script src=" /media/js/cool.js"></script>
-
 
 </html>
