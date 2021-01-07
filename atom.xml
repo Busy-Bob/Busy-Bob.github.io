@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://Busy-Bob.github.io</id>
     <title>勺海的博客</title>
-    <updated>2021-01-05T14:31:25.989Z</updated>
+    <updated>2021-01-07T09:47:19.209Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://Busy-Bob.github.io"/>
     <link rel="self" href="https://Busy-Bob.github.io/atom.xml"/>
@@ -10,6 +10,54 @@
     <logo>https://Busy-Bob.github.io/images/avatar.png</logo>
     <icon>https://Busy-Bob.github.io/favicon.ico</icon>
     <rights>All rights reserved 2021, 勺海的博客</rights>
+    <entry>
+        <title type="html"><![CDATA[Zynq 中查看用HLS 生成的IP核端口对应的内存空间]]></title>
+        <id>https://Busy-Bob.github.io/post/zynq-zhong-cha-kan-yong-hls-sheng-cheng-de-ip-he-duan-kou-dui-ying-de-nei-cun-kong-jian/</id>
+        <link href="https://Busy-Bob.github.io/post/zynq-zhong-cha-kan-yong-hls-sheng-cheng-de-ip-he-duan-kou-dui-ying-de-nei-cun-kong-jian/">
+        </link>
+        <updated>2021-01-07T09:34:33.000Z</updated>
+        <summary type="html"><![CDATA[<p>找了一会儿才找到, 所以记录下来。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>找了一会儿才找到, 所以记录下来。</p>
+<!-- more -->
+<p>用HLS生成的ip核，使用axi-lite协议，找不到pynq中top函数变量对应的内存空间地址。</p>
+<ul>
+<li>HLS中，Synthesis Summary的最后一项可以看到HW info.<br>
+<img src="https://Busy-Bob.github.io/post-images/1610012440636.png" alt="" loading="lazy"></li>
+<li>HLS生成的verilog文件(XXXXX_control_s_axi.v)中，有接口地址信息的注释。</li>
+</ul>
+<pre><code class="language-Verilog">//------------------------Address Info-------------------
+// 0x00 : reserved
+// 0x04 : reserved
+// 0x08 : reserved
+// 0x0c : reserved
+// 0x10 : Data signal of a
+//        bit 31~0 - a[31:0] (Read/Write)
+// 0x14 : reserved
+// 0x18 : Data signal of b
+//        bit 31~0 - b[31:0] (Read/Write)
+// 0x1c : reserved
+// 0x20 : Data signal of c
+//        bit 31~0 - c[31:0] (Read)
+// 0x24 : Control signal of c
+//        bit 0  - c_ap_vld (Read/COR)
+//        others - reserved
+// (SC = Self Clear, COR = Clear on Read, TOW = Toggle on Write, COH = Clear on Handshake)
+</code></pre>
+<ul>
+<li>pynq中，可通过<code>register_map</code>直接查看地址，或者直接操作变量。</li>
+</ul>
+<pre><code class="language-python">from pynq import Overlay
+overlay = Overlay('./design_1.bit')
+add_ip = overlay.add_0
+
+add_ip.register_map.a = 3
+add_ip.register_map.b = 4
+c = add_ip.register_map.c
+c.address
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Vitis HLS Coding Styles]]></title>
         <id>https://Busy-Bob.github.io/post/vitis-hls-coding-styles/</id>
@@ -1535,220 +1583,6 @@ impl Runtime {
     block_on(async_main());
 }
 </code></pre>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Rust const 泛型 (Const Generics)的使用方法：解析const_unit_poc]]></title>
-        <id>https://Busy-Bob.github.io/post/rust-const-fan-xing-const-genericsde-shi-yong-fang-fa-jie-xi-const_unit_poc_/</id>
-        <link href="https://Busy-Bob.github.io/post/rust-const-fan-xing-const-genericsde-shi-yong-fang-fa-jie-xi-const_unit_poc_/">
-        </link>
-        <updated>2020-11-23T12:15:59.000Z</updated>
-        <summary type="html"><![CDATA[<p>对于const 泛型，笔者也了解甚少。借写该文章的机会，学习一下Rust的const 泛型(Const Generics)</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>对于const 泛型，笔者也了解甚少。借写该文章的机会，学习一下Rust的const 泛型(Const Generics)</p>
-<!-- more -->
-<h2 id="const_unit_poc-利用const-generics实现的物理单位库"><code>const_unit_poc</code> ：利用const generics实现的物理单位库</h2>
-<p><code>const_unit_poc</code>  是几天前推出的，率先使用const 泛型的库。该库的使用方法如下：</p>
-<pre><code class="language-rust">#![feature(const_generics, const_evaluatable_checked)]
-use const_unit_poc::values::{m, kg, s, N};
-
-let distance = 1.0 * m;
-let mass = 18.0 * kg;
-let force = distance * mass / (1.8 * s * 2.0 * s);
-assert_eq!(force, 5.0 * N);
-
-let mut mutable_distance = 3.2 * m;
-mutable_distance -= 0.2 * m;
-mutable_distance += 2.0 * m;
-
-assert_eq!(mutable_distance, 5.0 * m);
-</code></pre>
-<p>代码及其简便！易懂！非常神奇！所以就根据该库的源代码看看const 泛型该如何使用。</p>
-<h2 id="const_unit_poc-源码分析"><code>const_unit_poc</code> 源码分析</h2>
-<p><a href="https://docs.rs/crate/const_unit_poc/1.0.0/source/src/lib.rs"><code>./src/lib.rs</code></a>：</p>
-<pre><code class="language-rust">#![feature(const_generics, const_evaluatable_checked, doc_cfg)]
-#![allow(incomplete_features)]
-#![cfg_attr(feature = &quot;non_ascii&quot;, feature(non_ascii_idents))]
-
-use std::ops;
-
-pub mod units;
-pub mod values;
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-#[allow(non_snake_case)]
-pub struct SiUnit {
-    m: i8,
-    kg: i8,
-    s: i8,
-    A: i8,
-    K: i8,
-    mol: i8,
-    cd: i8,
-}
-
-// 后面还有内容
-</code></pre>
-<p>这里引入了<code>units</code>, <code>values</code>两个mod，并且声明了<code>SiUnit</code> 这个结构体，里面的成员是SI的7个标准单位， 类型为i8。</p>
-<p>看到这儿，笔者推测应该是使用 <code>SiUnit</code> 这个结构体来实例化各种常用的单位（如<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span></span></span></span>），其中成员的值表示该单位表示成基本单位后的指数的值（如<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>N</mi><mo>=</mo><mi>m</mi><mo>∗</mo><msup><mi>s</mi><mrow><mo>−</mo><mn>2</mn></mrow></msup></mrow><annotation encoding="application/x-tex">N=m*s^{-2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.46528em;vertical-align:0em;"></span><span class="mord mathdefault">m</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">s</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span>， 则<code>N.m == 1; N.s == -2</code>）。</p>
-<p>再看一下引入的模块<code>units</code>的内容</p>
-<h3 id="units的实现">units的实现</h3>
-<p><a href="https://docs.rs/crate/const_unit_poc/1.0.0/source/src/units.rs"><code>./src/units.rs</code></a>：</p>
-<pre><code class="language-rust">#![allow(non_upper_case_globals)]
-use super::SiUnit;
-const NONE: SiUnit = SiUnit { m: 0, kg: 0, s: 0, A: 0, K: 0, mol: 0, cd: 0 };
-/// meter
-pub const m: SiUnit = SiUnit { m: 1, ..NONE };
-/// 中间内容省略
-/// lux
-pub const lx: SiUnit = SiUnit { m: -2, cd: 1, ..NONE };
-/// square meter
-pub const sq_m: SiUnit = SiUnit { m: 2, ..NONE };
-/// cubic meter
-pub const cu_m: SiUnit = SiUnit { m: 3, ..NONE };
-</code></pre>
-<p>的确和猜想一致！注意结构体实例化时候这儿使用了<code>..NONE</code>，这是用已经创建的实例None上<strong>更新部分参数</strong>，创建新的实例，见<a href="https://kaisery.github.io/trpl-zh-cn/ch05-01-defining-structs.html#%E4%BD%BF%E7%94%A8%E7%BB%93%E6%9E%84%E4%BD%93%E6%9B%B4%E6%96%B0%E8%AF%AD%E6%B3%95%E4%BB%8E%E5%85%B6%E4%BB%96%E5%AE%9E%E4%BE%8B%E5%88%9B%E5%BB%BA%E5%AE%9E%E4%BE%8B">使用结构体更新语法从其他实例创建实例</a>。这儿使用了const使得各个单位全局可见且不可变。</p>
-<p>现在已经有了单位，但是我们注意到代码中<code>assert_eq!(mutable_distance, 5.0 * m);</code>不仅仅要检测单位的值，还要检测系数的值，结构体与数字相乘后又该如何表示呢？这个问题应该能够从另一个模块得到答案吧。</p>
-<h3 id="对单位系数的包装">对单位系数的包装</h3>
-<p><a href="https://docs.rs/crate/const_unit_poc/1.0.0/source/src/values.rs"><code>./src/values.rs</code></a>：</p>
-<pre><code class="language-rust">#![allow(non_upper_case_globals)]
-use crate::{units, Quantity};
-// base
-/// 1 meter
-pub const m: Quantity&lt;{ units::m }&gt; = Quantity { raw_value: 1.0 };
-/// 1 kilogram
-pub const kg: Quantity&lt;{ units::kg }&gt; = Quantity { raw_value: 1.0 };
-/// 1 second
-pub const s: Quantity&lt;{ units::s }&gt; = Quantity { raw_value: 1.0 };
-/// 后面还有
-</code></pre>
-<p><strong>注意</strong>：<code>use crate::{units, Quantity}</code>, 代表的是导入的当前<code>crate</code>中的<code>units</code>和<code>Quantity</code>。<br>
-<strong>const 泛型</strong>: 从这儿的可以大概可以看出，<code>Quantity</code>的泛型参数是一个const常量，包装每一个<code>units.rs</code>中的const常量值。这就是const generics吧! 后面的实例化根据类型推导应该又可以写做：<code>Quantity&lt;{ units::m }&gt; { raw_value: 1.0 }</code>。 所以是用<code>raw_value</code>来表示每一个单位的系数。</p>
-<p>所以再来看看<code>Quantity</code>的定义吧。</p>
-<p>###结构体 <code>Quantity</code>的定义</p>
-<p><a href="https://docs.rs/crate/const_unit_poc/1.0.0/source/src/lib.rs"><code>./src/lib.rs</code></a>：</p>
-<pre><code class="language-rust">#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
-#[repr(transparent)]
-pub struct Quantity&lt;const U: SiUnit&gt; {
-    pub raw_value: f64,
-}
-</code></pre>
-<p>简单干脆的使用const 类型作为泛型参数。</p>
-<h3 id="加减运算">加减运算</h3>
-<p><a href="https://docs.rs/crate/const_unit_poc/1.0.0/source/src/lib.rs"><code>./src/lib.rs</code></a>：</p>
-<pre><code class="language-rust">impl&lt;const U: SiUnit&gt; ops::Add for Quantity&lt;U&gt; {
-    type Output = Self;
-
-    fn add(self, rhs: Self) -&gt; Self {
-        Self { raw_value: self.raw_value + rhs.raw_value }
-    }
-}
-
-impl&lt;const U: SiUnit&gt; ops::AddAssign for Quantity&lt;U&gt; {
-    fn add_assign(&amp;mut self, rhs: Self) {
-        self.raw_value += rhs.raw_value;
-    }
-}
-
-impl&lt;const U: SiUnit&gt; ops::Sub for Quantity&lt;U&gt; {
-    type Output = Self;
-
-    fn sub(self, rhs: Self) -&gt; Self {
-        Self { raw_value: self.raw_value - rhs.raw_value }
-    }
-}
-
-impl&lt;const U: SiUnit&gt; ops::SubAssign for Quantity&lt;U&gt; {
-    fn sub_assign(&amp;mut self, rhs: Self) {
-        self.raw_value -= rhs.raw_value;
-    }
-}
-</code></pre>
-<p>由于加减运算并不会变单位，所以就是对系数的加减，非常直接。</p>
-<h3 id="乘除运算">乘除运算</h3>
-<ul>
-<li>一个数字与一个Quantity相乘，单位不变：</li>
-</ul>
-<p><a href="https://docs.rs/crate/const_unit_poc/1.0.0/source/src/lib.rs"><code>./src/lib.rs</code></a>：</p>
-<pre><code class="language-rust">impl&lt;const U: SiUnit&gt; ops::Mul&lt;f64&gt; for Quantity&lt;U&gt; {
-    type Output = Quantity&lt;U&gt;;
-
-    fn mul(self, rhs: f64) -&gt; Self::Output {
-        Quantity { raw_value: self.raw_value * rhs }
-    }
-}
-</code></pre>
-<ul>
-<li>两个带单位的量相乘，单位发生变化，也就是<code>Quantity&lt;U&gt;</code>的泛型参数发生了变化，此时需要重新实例化一个<code>Quantity&lt;U&gt;</code>结构体：</li>
-</ul>
-<p><a href="https://docs.rs/crate/const_unit_poc/1.0.0/source/src/lib.rs"><code>./src/lib.rs</code></a>：</p>
-<pre><code class="language-rust">// Quantity相乘转换为unit相乘，UL.unit_mul(UR)
-impl&lt;const UL: SiUnit, const UR: SiUnit&gt; ops::Mul&lt;Quantity&lt;UR&gt;&gt; for Quantity&lt;UL&gt;
-where
-    Quantity&lt;{ UL.unit_mul(UR) }&gt;: ,
-{
-    type Output = Quantity&lt;{ UL.unit_mul(UR) }&gt;;
-
-    fn mul(self, rhs: Quantity&lt;UR&gt;) -&gt; Self::Output {
-        Quantity { raw_value: self.raw_value * rhs.raw_value }
-    }
-}
-// unit相乘
-impl SiUnit {
-    const fn unit_mul(self, rhs: Self) -&gt; Self {
-        Self {
-            m: self.m + rhs.m,
-            kg: self.kg + rhs.kg,
-            s: self.s + rhs.s,
-            A: self.A + rhs.A,
-            K: self.K + rhs.K,
-            mol: self.mol + rhs.mol,
-            cd: self.cd + rhs.cd,
-        }
-    }
-}
-</code></pre>
-<ul>
-<li>这儿对泛型的约束很神奇，竟然是这样写<code>Quantity&lt;{ UL.unit_mul(UR) }&gt;:</code> ，如果去掉这个where，则会报错unconstrained generic constant。虽然现在还不懂是什么意思....</li>
-</ul>
-<pre><code>error: unconstrained generic constant
-   --&gt; src\lib.rs:156:5
-    |
-156 |     type Output = Quantity&lt;{ UL.unit_mul(UR) }&gt;;     
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^     
-    |
-help: consider adding a `where` bound for this expression  
-   --&gt; src\lib.rs:156:28
-    |
-156 |     type Output = Quantity&lt;{ UL.unit_mul(UR) }&gt;;     
-    |                            ^^^^^^^^^^^^^^^^^^^     
-</code></pre>
-<ul>
-<li>另外一点，泛型中的const是调用一个const fn得到的时候，这个时候需要打大括号，如：<code>Quantity&lt;{ UL.unit_mul(UR) }&gt;</code> ，否则也会出错。这在最近的<a href="https://github.com/rust-lang/rust/pull/79135">Stabilization report</a>里面也有提到。</li>
-</ul>
-<blockquote>
-<p><strong>Const arguments</strong></p>
-<p>Const parameters are instantiated using const arguments. Any concrete const expression or const parameter as a standalone argument can be used. When applying an expression as const parameter, <strong>most expressions must be contained within a block</strong>, with two exceptions:</p>
-<ol>
-<li>literals and single-segment path expressions</li>
-<li>array lengths</li>
-</ol>
-<p>This syntactic restriction is necessary to avoid ambiguity, or requiring infinite lookahead when parsing an expression as a generic argument.</p>
-<p>In the cases where a generic argument could be resolved as either a type or const argument, we always interpret it as a type. This causes the following test to fail:</p>
-<pre><code class="language-rust">type N = u32;
-struct Foo&lt;const N: usize&gt;;
-fn foo&lt;const N: usize&gt;() -&gt; Foo&lt;N&gt; { todo!() } // ERR
-</code></pre>
-<p>To circumvent this, the user may wrap the const parameter with braces, at which point it is unambiguously accepted.</p>
-<pre><code class="language-rust">type N = u32;
-struct Foo&lt;const N: usize&gt;;
-fn bar&lt;const N: usize&gt;() -&gt; Foo&lt;{ N }&gt; { todo!() } // ok
-</code></pre>
-</blockquote>
-<p>简单来说，const 泛型一般都需要打大括号(两种情况除外)，打大括号是为了防止歧义。</p>
-<h2 id="总结">总结</h2>
-<p>这篇文章主要是了解了const 泛型在做啥，以及如何做的。</p>
-<p>通过这个简单的例子，我感觉const 泛型是用在当泛型需要有取值的时候（比如这里的unit就需要取值，而不能每一个单位一个类型...）。</p>
 ]]></content>
     </entry>
 </feed>
