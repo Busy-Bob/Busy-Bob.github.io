@@ -8,7 +8,7 @@
 <meta name="keywords" content="勺海的个人博客">
 <meta name="description" content="尽应尽之事，做让自己开心的事。">
 <meta name="theme-color" content="#000">
-<title>勺海的博客</title>
+<title>Xilinx FPGA 板上结构知识杂记 | 勺海的博客</title>
 <link rel="shortcut icon" href="/favicon.ico?v=1610269908744">
 <link rel="stylesheet" href="/styles/main.css">
 <link rel="stylesheet" href="/media/css/pisces.css">
@@ -29,6 +29,8 @@
 
 
 
+  <meta name="description" content="Xilinx FPGA 板上结构知识杂记" />
+  <meta name="keywords" content="fpga" />
 </head>
 
 <body>
@@ -136,10 +138,26 @@
   <div class="main-continer">
     
     <div
-      class="section-layout  pisces">
+      class="section-layout pisces ">
       <div class="section-layout-wrapper">
-        <div id="sidebarMeta" class="sidebar">
-    
+        
+
+<div class="sidebar">
+  
+    <div class="sidebar-box box-shadow-wrapper bg-color right-motion" id="sidebar">
+      
+        <div class="post-list-sidebar">
+          <div class="sidebar-title">
+            <span id="tocSideBar" class="sidebar-title-item sidebar-title-active">文章目录</span>
+            <span id="metaSideBar" class="sidebar-title-item">站点概览</span>
+          </div>
+        </div>
+      
+      <div class="sidebar-body pisces" id="sidebar_body">
+        
+          
+            <div class="post-side-meta" id="post_side_meta">
+              
 <div class="sidebar-wrapper box-shadow-wrapper bg-color">
   <div class="sidebar-item">
     <img class="site-author-image right-motion" src="/images/avatar.png"/>
@@ -202,195 +220,513 @@
 
 
 </div>
+            </div>
+            <div class="post-toc sidebar-body-active" id="post_toc" style="opacity: 1;">
+              <div class="toc-box right-motion">
+  <div class="toc-wrapper auto-number auto"
+    id="toc_wrapper">
+    <ul class="markdownIt-TOC">
+<li><a href="#lut%E5%92%8Cslice">LUT和Slice</a></li>
+<li><a href="#dsp%E5%9F%BA%E6%9C%AC%E5%8A%9F%E8%83%BD%E6%98%AF%E5%81%9A%E4%B9%98%E6%B3%95%E8%BF%90%E7%AE%97">DSP：基本功能是做乘法运算</a></li>
+<li><a href="#bram-block-ram">BRAM (Block RAM)</a></li>
+<li><a href="#%E5%8D%95%E7%AB%AF%E5%8F%A3ram-%E4%BC%AA%E5%8F%8C%E7%AB%AF%E5%8F%A3ram%E5%8F%8C%E7%AB%AF%E5%8F%A3ram%E5%92%8Cfifo">单端口RAM、伪双端口RAM，双端口RAM和FIFO</a></li>
+</ul>
+
+  </div>
 </div>
+
 <script>
-  let sidebarMeta = document.querySelector('#sidebarMeta');
-  let scheme = 'pisces';
-  let sidebarWrapper = document.querySelector('.sidebar-wrapper');
-  if (sidebarMeta && (scheme === 'pisces' || scheme === 'gemini')) {
-    document.addEventListener('scroll', function(e) {
-      if (document.scrollingElement.scrollTop > parseInt(sidebarMeta.style.marginTop) + 10) {
-        sidebarWrapper.classList.add('home-sidebar-fixed')
-      } else {
-        sidebarWrapper.classList.remove('home-sidebar-fixed')
+
+  let lastTop = 0, lList = [], hList = [], postBody, lastIndex = -1;
+  let active = 'active-show', activeClass = 'active-current';
+  let tocWrapper = document.querySelector('#toc_wrapper');
+  let tocContent = tocWrapper.children[0];
+  let autoNumber = tocWrapper && tocWrapper.classList.contains('auto-number');
+
+  function addTocNumber(elem, deep) {
+    if (!elem) {
+      return;
+    }
+    let prop = elem.__proto__;
+
+    if (prop === HTMLUListElement.prototype) {
+      for (let i = 0; i < elem.children.length; i++) {
+        addTocNumber(elem.children[i], deep + (i + 1) + '.');
       }
+    } else if (prop === HTMLLIElement.prototype) {
+      // 保存li元素
+      if (elem.children[0].__proto__ === HTMLAnchorElement.prototype) {
+        lList.push(elem);
+      }
+      for (let i = 0; i < elem.children.length; i++) {
+        let cur = elem.children[i];
+        if (cur.__proto__ === HTMLAnchorElement.prototype) {
+          if (autoNumber) {
+            cur.text = deep + ' ' + cur.text;
+          }
+        } else if (cur.__proto__ === HTMLUListElement.prototype) {
+          addTocNumber(cur, deep);
+        }
+      }
+    }
+  }
+
+  function removeParentActiveClass() {
+    let parents = tocContent.querySelectorAll('.' + active)
+    parents.forEach(function (elem) {
+      elem.classList.remove(active);
     });
   }
-  </script>
-        <div class="section-box tag-line box-shadow-wrapper">
-          <section class="section tags-section posts-expand bg-color">
-            <div class="padding-wrapper">
-  <div class="tag-timeline-box">
-    <div class="tag-timeline-wrapper">
-      <div class="tag-timeline-title">
-        <h2>
-          FPGA
-          <small>标签</small>
-        </h2>
+
+  function addActiveClass(index) {
+    if (index >= 0 && index < hList.length) {
+      lList[index].classList.add(activeClass);
+    }
+  }
+
+  function removeActiveClass(index) {
+    if (index >= 0 && index < hList.length) {
+      lList[index].classList.remove(activeClass);
+    }
+  }
+
+  function addActiveLiElemment(elem, parent) {
+    if (!elem || elem === parent) {
+      return;
+    } else {
+      if (elem.__proto__ === HTMLLIElement.prototype) {
+        elem.classList.add(active);
+      }
+      addActiveLiElemment(elem.parentElement, parent);
+    }
+  }
+
+  function showToc() {
+    if (tocWrapper) {
+      postBody = document.querySelector('#post_body');
+      for (let i = 0; i < postBody.children.length; i++) {
+        if (postBody.children[i].__proto__ === HTMLHeadingElement.prototype) {
+          hList.push(postBody.children[i]);
+        }
+      }
+      if (tocWrapper.classList.contains('compress')) {
+        tocContent.classList.add('closed');
+      } else if (tocWrapper.classList.contains('no_compress')) {
+        tocContent.classList.add('expanded');
+      } else {
+        if (hList.length > 10) {
+          active = 'active-hidden'
+          tocContent.classList.add('closed');
+        } else {
+          tocContent.classList.add('expanded');
+        }
+      }
+    }
+  }
+
+  (function () {
+    // 处理不是从#一级标题开始目录
+    if (tocContent.children.length === 1 && tocContent.children[0].__proto__ === HTMLLIElement.prototype) {
+      let con = tocContent.children[0].children[0];
+      tocContent.innerHTML = con.innerHTML;
+    }
+    let markdownItTOC = document.querySelector('.markdownIt-TOC');
+    let innerHeight = window.innerHeight;
+    markdownItTOC.style = `max-height: ${innerHeight - 80 > 0 ? innerHeight - 80 : innerHeight}px`
+    addTocNumber(tocContent, '');
+  })();
+
+  document.addEventListener('scroll', function (e) {
+    if (lList.length <= 0) {
+      return;
+    }
+    let scrollTop = document.scrollingElement.scrollTop + 10;
+    let dir;
+
+    if (lastTop - scrollTop > 0) {
+      dir = 'up';
+    } else {
+      dir = 'down';
+    }
+
+    lastTop = scrollTop;
+    if (scrollTop <= 0) {
+      if (lastIndex >= 0 && lastIndex < hList.length) {
+        lList[lastIndex].classList.remove(activeClass);
+      }
+      return;
+    }
+
+    let current = 0, hasFind = false;
+    for (let i = 0; i < hList.length; i++) {
+      if (hList[i].offsetTop > scrollTop) {
+        current = i;
+        hasFind = true;
+        break;
+      }
+    }
+    if (!hasFind && scrollTop > lList[lList.length - 1].offsetTop) {
+      current = hList.length - 1;
+    } else {
+      current--;
+    }
+    if (dir === 'down') {
+      if (current > lastIndex) {
+        addActiveClass(current);
+        removeActiveClass(lastIndex)
+        lastIndex = current;
+        removeParentActiveClass();
+        lList[current] && addActiveLiElemment(lList[current].parentElement, tocContent);
+      }
+    } else {
+      if (current < lastIndex) {
+        addActiveClass(current);
+        removeActiveClass(lastIndex);
+        lastIndex = current;
+        removeParentActiveClass();
+        lList[current] && addActiveLiElemment(lList[current].parentElement, tocContent);
+      }
+    }
+  });
+
+
+  window.addEventListener('load', function () {
+    showToc();
+    document.querySelector('#sidebar').style = 'display: block;';
+    tocWrapper.classList.add('toc-active');
+    setTimeout(function () {
+      if ("createEvent" in document) {
+        let evt = document.createEvent("HTMLEvents");
+        evt.initEvent("scroll", false, true);
+        document.dispatchEvent(evt);
+      }
+      else {
+        document.fireEvent("scroll");
+      }
+    }, 500)
+  })
+
+</script>
+            </div>
+          
+        
       </div>
+    </div>
+  
+</div>
+<script>
+  const SIDEBAR_TITLE_ACTIVE = 'sidebar-title-active';
+  const SIDEBAR_BODY_ACTIVE = 'sidebar-body-active';
+  const SLIDE_UP_IN = 'slide-up-in';
+
+  let sidebar = document.querySelector('#sidebar'),
+  tocSideBar = document.querySelector('#tocSideBar'),
+  metaSideBar = document.querySelector('#metaSideBar'),
+  postToc = document.querySelector('#post_toc'),
+  postSiteMeta = document.querySelector('#post_side_meta'),
+  sidebarTitle = document.querySelector('.sidebar-title'),
+  sidebarBody = document.querySelector('#sidebar_body');
+
+  tocSideBar && tocSideBar.addEventListener('click', (e) => {
+    toggleSidebar(e);
+  });
+
+  metaSideBar && metaSideBar.addEventListener('click', (e) => {
+    toggleSidebar(e);
+  });
+
+  function toggleSidebar(e) {
+    let currentTitle = document.querySelector("."+SIDEBAR_TITLE_ACTIVE);
+    if (currentTitle == e.srcElement) {
+      return ;
+    }
+    let current, showElement, hideElement;
+    if (e.srcElement == metaSideBar) {
+      showElement = postSiteMeta;
+      hideElement = postToc;
+    } else if (e.srcElement == tocSideBar){
+      showElement = postToc;
+      hideElement = postSiteMeta;
+    }
+    currentTitle.classList.remove(SIDEBAR_TITLE_ACTIVE);
+    e.srcElement.classList.add(SIDEBAR_TITLE_ACTIVE);
+
+    window.Velocity(hideElement, 'stop');
+    window.Velocity(hideElement, 'transition.slideUpOut', {
+      display: 'none',
+      duration: 200,
+      complete: function () {
+        window.Velocity(showElement, 'transition.slideDownIn', {
+          duration: 200
+        });
+      }
+    })
+    hideElement.classList.remove(SIDEBAR_BODY_ACTIVE);
+    showElement.classList.add(SIDEBAR_BODY_ACTIVE);
+  }
+
+  postToc && postToc.addEventListener('transitionend', function() {
+    this.classList.remove(SLIDE_UP_IN);
+  });
+
+  if (sidebarBody) {
+    if (sidebarBody.classList.contains('pisces') || sidebarBody.classList.contains('gemini')) {
+      let hasFix = false;
+      let scrollEl = document.querySelector('.main-continer');
+      let limitTop = document.querySelector('#nav_ul').children.length * 42 + 162;
+      window.addEventListener('scroll', function(e) {
+        if (document.scrollingElement.scrollTop >= limitTop) {
+          if (!hasFix) {
+            sidebar.classList.add('sidebar-fixed');
+            hasFix = true;
+          }
+        } else {
+          if (hasFix) {
+            sidebar.classList.remove('sidebar-fixed');
+            hasFix = false;
+          }
+        }
+      });
+    }
+  }
+  
+</script>
+        <div class="section-box box-shadow-wrapper">
+          <div class="section bg-color post post-page">
+            <header class="post-header">
+  <h1 class="post-title">
+    <a class="post-title-link" href="https://Busy-Bob.github.io/post/xilinx-fpga-ban-shang-jie-gou-zhi-shi-za-ji/">
+      Xilinx FPGA 板上结构知识杂记
+    </a>
+  </h1>
+  <div class="post-meta">
+    
+    <span class="meta-item pc-show">
+      <i class="fa fa-calendar-o"></i>
+      <span>发布于</span>
+      <span>2021-01-10</span>
+      <span class="post-meta-divider pc-show">|</span>
+    </span>
+    
+    <span class="meta-item">
+      <i class="fa fa-folder-o"></i>
+      <span class="pc-show">分类于</span>
       
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      <a href="https://Busy-Bob.github.io/post/zynq-zhong-cha-kan-yong-hls-sheng-cheng-de-ip-he-duan-kou-dui-ying-de-nei-cun-kong-jian/">
-        <div class="motion-warpper">
-          <div class="tag-post-node">
-            <h1>
-              01-07
-              <small>Zynq 中查看用HLS 生成的IP核端口对应的内存空间</small>
-            </h1>
-          </div>
-        </div>
+      <a href="https://Busy-Bob.github.io/tag/EEJj1UZDJ/">
+        <span>fpga</span>
       </a>
       
       
-      
-      
-      
-      
-      
-      
-      
-      <a href="https://Busy-Bob.github.io/post/vitis-hls-coding-styles/">
-        <div class="motion-warpper">
-          <div class="tag-post-node">
-            <h1>
-              01-04
-              <small>Vitis HLS Coding Styles</small>
-            </h1>
-          </div>
-        </div>
-      </a>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      <a href="https://Busy-Bob.github.io/post/vitis-hls-de-tiny-tutorial-bu-fen-dai-ma-fen-xi/">
-        <div class="motion-warpper">
-          <div class="tag-post-node">
-            <h1>
-              01-04
-              <small>Vitis HLS 的Tiny Tutorial部分代码分析</small>
-            </h1>
-          </div>
-        </div>
-      </a>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      <a href="https://Busy-Bob.github.io/post/fpga-yong-lai-jia-su-yun-suan-de-diao-yan/">
-        <div class="motion-warpper">
-          <div class="tag-post-node">
-            <h1>
-              01-02
-              <small>FPGA用来加速运算的调研</small>
-            </h1>
-          </div>
-        </div>
-      </a>
-      
-      
-      
-      
-      
-      
-      
-      <a href="https://Busy-Bob.github.io/post/the-zynq-book-xue-xi/">
-        <div class="motion-warpper">
-          <div class="tag-post-node">
-            <h1>
-              12-31
-              <small>The Zynq Book 学习： 引言</small>
-            </h1>
-          </div>
-        </div>
-      </a>
-      
-      
-      
-      
-      
-      
-      
-      <a href="https://Busy-Bob.github.io/post/zynq-zhong-de-si-chong-tong-xin-jie-kou__/">
-        <div class="motion-warpper">
-          <div class="tag-post-node">
-            <h1>
-              12-31
-              <small>ZYNQ中的通信接口(包括PS与PL)</small>
-            </h1>
-          </div>
-        </div>
-      </a>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+    </span>
+    <span class="post-meta-divider">|</span>
+    
+    <span class="meta-item">
+      <i class="fa fa-clock-o"></i>
+      <span>4分钟</span>
+    </span>
+    <span class="meta-item">
+      <span class="post-meta-divider">|</span>
+      <i class="fa fa-file-word-o"></i>
+      <span>1007<span class="pc-show">字数</span></span>
+    </span>
+    
+    
+    
+    <span id="/post/xilinx-fpga-ban-shang-jie-gou-zhi-shi-za-ji/" data-flag-title="Xilinx FPGA 板上结构知识杂记" class="meta-item pc-show leancloud_visitors">
+      <span class="post-meta-divider">|</span>
+      <i class="fa fa-eye"></i>
+      <span>浏览量：<span class="leancloud-visitors-count"></span></span>
+    </span>
+    
+  </div>
+</header>
+            <div class="post-body next-md-body" id="post_body">
+              <p>一点xilinx fpga 板上结构的知识点，记录下来。主要参考《基于FPGA的数字信号处理》一书第八章。</p>
+<!-- more -->
+<h1 id="lut和slice">LUT和Slice</h1>
+<ul>
+<li>zynq-7000中使用的查找表(Look Up Table，LUT)是6位的，其中包含一个5位的LUT。（6位需要的SRAM空间是2^6=64bit，5位是32bit。这应该也是为什么需要一个LUT5来构成LUT6了。）<br>
+<img src="https://Busy-Bob.github.io/post-images/1610258789689.png" alt="" loading="lazy"></li>
+<li>LUT可以作为RAM和ROM，<strong>逻辑输入作为地址线</strong>，内存作为ROM或者RAM，见<a href="https://electronics.stackexchange.com/a/85465">How does a LUT work, why is it used?</a>。其中SLICEL(slice logic)只能作为ROM，而SLICEM(slice memory)可以作为ROM和分布式的RAM。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>LUT功能</th>
+<th>SLICEL</th>
+<th>SLICEM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>逻辑函数发生器</td>
+<td>√</td>
+<td>√</td>
+</tr>
+<tr>
+<td>ROM</td>
+<td>√</td>
+<td>√</td>
+</tr>
+<tr>
+<td>分布式RAM</td>
+<td></td>
+<td>√</td>
+</tr>
+<tr>
+<td>移位寄存器</td>
+<td></td>
+<td>√</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>作为RAM也可以有多种类型，各种需要不同数量的LUT。<br>
+<img src="https://Busy-Bob.github.io/post-images/1610268719145.png" alt="" loading="lazy"></li>
+<li>SLICEM中1个LUT6可配置为1个32bit的移位寄存器，<strong>逻辑输入端口作为时钟周期延时数</strong>，所以在Xilinx FPGA中实现FIFO的功能，可采用Block RAM的方式，也可采用LUT的方式。</li>
+<li>一个LUT6可实现4选1的MUX （数据4位，地址2位）。</li>
+<li>一个F7MUX和相邻的两个LUT6可实现一个8选1的MUX。因此，一个SLICE可实现2个8选1的MUX。</li>
+<li>4个LUT6、F7AMUX、F7BMUX和F8MUX可实现一个16选1的MUX。因此，一个SLICE可实现一个16选1的MUX</li>
+</ul>
+<h1 id="dsp基本功能是做乘法运算">DSP：基本功能是做乘法运算</h1>
+<ul>
+<li>zynq中的DSP(Digital Signal Processing)部分是由DSP48E1组成的，组成基本结构如图：<br>
+<img src="https://Busy-Bob.github.io/post-images/1610267218196.png" alt="" loading="lazy"></li>
+<li>由五部分构成：
+<ul>
+<li>对外端口</li>
+<li><strong>预加器</strong>(pre-adder)</li>
+<li><strong>乘法器</strong>(MULT)</li>
+<li><strong>逻辑运算单元</strong>(ALU)</li>
+<li>模式检测电路<br>
+<img src="https://Busy-Bob.github.io/post-images/1610267326031.png" alt="" loading="lazy"></li>
+</ul>
+</li>
+<li>对外<strong>端口</strong>有：
+<ul>
+<li>操作数输入输出端口</li>
+<li>模式配置端口</li>
+<li>级联端口<br>
+<img src="https://Busy-Bob.github.io/post-images/1610267484853.png" alt="" loading="lazy"></li>
+</ul>
+</li>
+<li>简化结构图为：<br>
+<img src="https://Busy-Bob.github.io/post-images/1610267801525.png" alt="" loading="lazy"></li>
+<li>单指令多数据模式即SIMD ( Single Instruction, Multiple Data)。它使得48bit的ALU可配置为4个 12bit的ALU (执行加法、减法或位逻辑运算)或者2个24bit的ALU。</li>
+<li>采用VHDL或Verilog代码描述时，<strong>乘法、乘加/乘减和乘累加运算会被自动映射为 DSP48E1,而加法、减法和累加运算默认情况下釆用常规逻辑资源实现</strong>。若也希望它们被映 射为DSP48E1,则需要通过综合属性use_dsp48对其进行约束。</li>
+<li>应用：
+<ul>
+<li>48bit累加运算(比加法器多一个寄存器用来存取前面加过的数据，寄存器是需要时钟驱动的。)</li>
+<li>2输入48bit数据相加之后累加</li>
+<li>96bit加法、减法运算（需要级联）</li>
+<li>96bit累加运算（需要级联）</li>
+<li>乘累加运算(两个输入数据相乘并对乘积结果累加)：</li>
+<li>复数乘法运算</li>
+</ul>
+</li>
+</ul>
+<h1 id="bram-block-ram">BRAM (Block RAM)</h1>
+<ul>
+<li>块RAM (根据地址写入和输出)</li>
+<li>Block RAM (BRAM)在FPGA设计中扮演着一个重要的角色即数据存储或缓存</li>
+<li>zynq中每个BRAM达到了 36Kb,由两个18Kb BRAM拼接而成.</li>
+<li>BRAM在不牺牲很大带宽的前提下，提供了更大的储存密度。带宽的牺牲主要在于<strong>每个周期BRAM只有1-2个入口可以被接通</strong>(对应单端口和双端口)。</li>
+<li>利用BRAM实现逻辑运算功能本质上而言是将BRAM配置为ROM,它就像一个大的 查找表（LUT）。</li>
+<li>对一些固定的数据进行存储，这就需要用到 ROM，可存在BRAM里。</li>
+</ul>
+<h1 id="单端口ram-伪双端口ram双端口ram和fifo"><a href="https://zhuanlan.zhihu.com/p/96616326">单端口RAM、伪双端口RAM，双端口RAM和FIFO</a></h1>
+<ul>
+<li>单端口RAM（Single-Port RAM）
+<ul>
+<li>输入只有<strong>一组数据线</strong>和<strong>一组地址线</strong></li>
+<li>只有一个时钟</li>
+<li><strong>读写共用地址线</strong></li>
+<li>所以一个时钟周期只能读或者只能写。</li>
+</ul>
+</li>
+<li>伪双端口RAM（Simple Dual-Port RAM）
+<ul>
+<li>输入有<strong>一组数据线</strong>，<strong>两组地址线</strong>。</li>
+<li><strong>两个时钟</strong>。</li>
+<li>一个端口只读，另一个端口只写，但写入和读取的时钟可以不同，且位宽比可以不是1:1</li>
+</ul>
+</li>
+<li>双端口RAM（True Dual-Port RAM）
+<ul>
+<li>输入有<strong>两组地址线</strong>和<strong>两组数据线</strong></li>
+<li><strong>两个时钟</strong></li>
+<li>两个端口都有读写的功能。</li>
+</ul>
+</li>
+<li>FIFO (First-in, first-out)
+<ul>
+<li>一个端口只读，另一个端口只写。</li>
+<li><strong>先入先出，没有地址线</strong></li>
+<li>上述三种RAM都可以寻址，<strong>FIFO不能寻址</strong>。</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+            <div class="post-footer">
+  <ul class="post-copyright">
+    <li class="post-copyright-author">
+      <strong>本文作者：</strong>
+      勺海
+    </li>
+    <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://Busy-Bob.github.io/post/xilinx-fpga-ban-shang-jie-gou-zhi-shi-za-ji/" title="Xilinx FPGA 板上结构知识杂记">https://Busy-Bob.github.io/post/xilinx-fpga-ban-shang-jie-gou-zhi-shi-za-ji/</a>
+    </li>
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong>
+      本博客所有文章除特别声明外，均采用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i> BY-NC-SA</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+  <div class="tags">
+    
+      <a href="https://Busy-Bob.github.io/tag/EEJj1UZDJ/"># fpga</a>
+    
+  </div>
+  <div class="nav">
+    <div class="nav-prev">
+      
+    </div>
+    <div class="nav-next">
+      
+        <a class="nav-pc-next" title="Zynq 中查看用HLS 生成的IP核端口对应的内存空间" href="https://Busy-Bob.github.io/post/zynq-zhong-cha-kan-yong-hls-sheng-cheng-de-ip-he-duan-kou-dui-ying-de-nei-cun-kong-jian/">Zynq 中查看用HLS 生成的IP核端口对应的内存空间</a>
+        <a class="nav-mobile-next" title="Zynq 中查看用HLS 生成的IP核端口对应的内存空间" href="https://Busy-Bob.github.io/post/zynq-zhong-cha-kan-yong-hls-sheng-cheng-de-ip-he-duan-kou-dui-ying-de-nei-cun-kong-jian/">下一篇</a>
+        <i class="fa fa-chevron-right"></i>
       
     </div>
   </div>
 </div>
-          </section>
+            
+  
+    
+      <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+  var gitalk = new Gitalk({
+    clientID: 'e32c230de13db368ea78',
+    clientSecret: '80f8c1d8fb3370a0c9df34a96b46d0d083867ac7',
+    repo: 'Busy-Bob.github.io',
+    owner: 'Busy-Bob',
+    admin: ['Busy-Bob'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+  gitalk.render('gitalk-container')
+</script>
+    
+    
+  
+
+          </div>
         </div>
       </div>
     </div>
@@ -560,6 +896,36 @@
   // 代码高亮
   hljs.initHighlightingOnLoad();
 
+</script>
+    <div class="light-box" id="light_box"></div>
+<script>
+  let imgs = document.querySelectorAll('.post-body img');
+  let lightBox = document.querySelector('#light_box');
+  lightBox.addEventListener('mousedown', (e) => {
+    e.preventDefault()
+  })
+  lightBox.addEventListener('mousewheel', (e) => {
+    e.preventDefault()
+  })
+  let width = window.innerWidth * 0.8;
+  lightBox.onclick = () => {
+    let img = lightBox.querySelector('img');
+    lightBox.style = '';
+    img && img.remove();
+  }
+  imgs.forEach(item => {
+    item.onclick = function (e) {
+      let lightImg = document.createElement('img');
+      lightImg.src = this.src;
+      lightBox.style = `height: 100%; opacity: 1; background-color: rgba(0, 0, 0, 0.5);cursor: zoom-out;`;
+      lightImg.style = `width: ${width}px; border: 1px solid #fff; border-radius: 2px;`;
+      lightImg.onclick = function () {
+        lightBox.style = '';
+        this.remove();
+      }
+      lightBox.append(lightImg);
+    }
+  })
 </script>
   </div>
 </body>
@@ -2628,6 +2994,5 @@ Rust异步编程是Rust语言中十分重要特性。现在Rust中的异步编�
 
 
 <script src=" /media/js/cool.js"></script>
-
 
 </html>
