@@ -2202,6 +2202,9 @@ body {
   background-color: #f1f1f1;
   padding: 2px;
   font-size: 105%;
+}
+.katex-html {
+  display:none;
 }.box-shadow-wrapper {
       box-shadow: none !important;
     }body {
