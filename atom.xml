@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://Busy-Bob.github.io</id>
     <title>勺海的博客</title>
-    <updated>2021-01-17T13:42:37.787Z</updated>
+    <updated>2021-01-18T13:53:08.657Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://Busy-Bob.github.io"/>
     <link rel="self" href="https://Busy-Bob.github.io/atom.xml"/>
@@ -618,6 +618,124 @@ void dft(IN_TYPE sample_real[N], IN_TYPE sample_imag[N]) {
 <li>综合结果和优化2结果类似。</li>
 </ul>
 <h1 id="第五章-快速傅里叶变换fft">第五章 快速傅里叶变换（FFT）</h1>
+<ul>
+<li>当取样样本数量为N时，直接使用矩阵向量乘法来执行离散傅里叶变换需要<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">O</mi><mo>(</mo><msup><mi>n</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(n^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.02778em;">O</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>次乘法和加法操作。</li>
+<li>S矩阵具有大量冗余</li>
+<li>快速傅立叶变换（FFT）使用基于S矩阵对称性的分块处理方法，它需要<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="script">O</mi><mo>(</mo><mi>n</mi><mi>log</mi><mo>⁡</mo><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(n \log n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.02778em;">O</span></span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>复杂度</li>
+<li>两点FFT：<br>
+<img src="https://Busy-Bob.github.io/post-images/1610951804872.jpg" alt="" loading="lazy"></li>
+<li>四点FFT：<br>
+<img src="https://Busy-Bob.github.io/post-images/1610951820745.jpg" alt="" loading="lazy"></li>
+<li>八点FFT（其中的bit reverse 只需要将bit左右颠倒就好了 001 -&gt; 100）：<br>
+<img src="https://Busy-Bob.github.io/post-images/1610951841265.jpg" alt="" loading="lazy"></li>
+<li>递归关系：<br>
+<img src="https://Busy-Bob.github.io/post-images/1610951872719.jpg" alt="" loading="lazy"></li>
+</ul>
+<h2 id="代码">代码</h2>
+<pre><code class="language-C++">#include &quot;fft.h&quot;
+
+
+void bit_reverse(DTYPE X_R[SIZE], DTYPE X_I[SIZE], DTYPE OUT_R[SIZE], DTYPE OUT_I[SIZE]);
+template&lt;int STAGE&gt;
+void fft_stages (DTYPE X_R[SIZE], DTYPE X_I[SIZE], DTYPE OUT_R[SIZE], DTYPE OUT_I[SIZE]);
+
+void fft(DTYPE X_R[SIZE], DTYPE X_I[SIZE], DTYPE OUT_R[SIZE], DTYPE OUT_I[SIZE])
+{
+	
+
+	//Call fft
+	DTYPE Stage0_R[SIZE], Stage0_I[SIZE];
+	DTYPE Stage1_R[SIZE], Stage1_I[SIZE];
+	DTYPE Stage2_R[SIZE], Stage2_I[SIZE];
+	DTYPE Stage3_R[SIZE], Stage3_I[SIZE];
+	DTYPE Stage4_R[SIZE], Stage4_I[SIZE];
+	DTYPE Stage5_R[SIZE], Stage5_I[SIZE];
+	DTYPE Stage6_R[SIZE], Stage6_I[SIZE];
+	DTYPE Stage7_R[SIZE], Stage7_I[SIZE];
+	DTYPE Stage8_R[SIZE], Stage8_I[SIZE];
+	DTYPE Stage9_R[SIZE], Stage9_I[SIZE];
+
+	bit_reverse(X_R, X_I, Stage0_R, Stage0_I);
+	fft_stages&lt;1&gt;(Stage0_R, Stage0_I, Stage1_R, Stage1_I);
+	fft_stages&lt;2&gt;(Stage1_R, Stage1_I, Stage2_R, Stage2_I);
+	fft_stages&lt;3&gt;(Stage2_R, Stage2_I, Stage3_R, Stage3_I);
+	fft_stages&lt;4&gt;(Stage3_R, Stage3_I, Stage4_R, Stage4_I);
+	fft_stages&lt;5&gt;(Stage4_R, Stage4_I, Stage5_R, Stage5_I);
+	fft_stages&lt;6&gt;(Stage5_R, Stage5_I, Stage6_R, Stage6_I);
+	fft_stages&lt;7&gt;(Stage6_R, Stage6_I, Stage7_R, Stage7_I);
+	fft_stages&lt;8&gt;(Stage7_R, Stage7_I, Stage8_R, Stage8_I);
+	fft_stages&lt;9&gt;(Stage8_R, Stage8_I, Stage9_R, Stage9_I);
+	fft_stages&lt;10&gt;(Stage9_R, Stage9_I, OUT_R, OUT_I);
+}
+
+unsigned int reverse_bits(unsigned int input)
+{
+	int i, rev = 0;
+	for (i = 0; i &lt; M; i++)
+	{
+		rev = (rev &lt;&lt; 1) | (input &amp; 1);
+		input = input &gt;&gt; 1;
+	}
+	return rev;
+}
+
+void bit_reverse(DTYPE X_R[SIZE], DTYPE X_I[SIZE], DTYPE OUT_R[SIZE], DTYPE OUT_I[SIZE])
+{
+	unsigned int reversed;
+	unsigned int i;
+	DTYPE temp;
+
+	for (i = 0; i &lt; SIZE; i++)
+	{
+		reversed = reverse_bits(i); // Find the bit reversed index
+		OUT_R[reversed] = X_R[i];
+		OUT_I[reversed] = X_I[i];
+	}
+}
+/*=======================BEGIN: FFT=========================*/
+
+
+//stages
+template&lt;int STAGE&gt;
+void fft_stages (DTYPE X_R[SIZE], DTYPE X_I[SIZE], DTYPE OUT_R[SIZE], DTYPE OUT_I[SIZE])
+{
+	//Insert your code here
+	int DFTpts = 1 &lt;&lt; STAGE; // DFT = 2^stage = points in sub DFT
+	int numBF = DFTpts &gt;&gt; 1;	 // Butterfly WIDTHS in sub-DFT
+	DTYPE e = -6.283185307178 / DFTpts;
+// Perform butterflies for j-th stage
+
+butterfly_loop:
+	for (int j = 0; j &lt; (1 &lt;&lt; (STAGE - 1)); j++)
+	{
+	// Compute butterflies that use same W**k
+	dft_loop:
+		for (int k = 0; k &lt; (1 &lt;&lt; (M - STAGE)); k++)
+		// for (int i = j; i &lt; SIZE; i += (1 &lt;&lt; STAGE))
+		{
+			int i = j + k * (1 &lt;&lt; STAGE);
+
+			DTYPE c = W_real[j &lt;&lt; (M - STAGE)];
+			DTYPE s = W_imag[j &lt;&lt; (M - STAGE)];
+			int i_lower = i + (1 &lt;&lt; (STAGE - 1)); // index of lower point in butterfly
+			DTYPE temp_R = X_R[i_lower] * c - X_I[i_lower] * s;
+			DTYPE temp_I = X_I[i_lower] * c + X_R[i_lower] * s;
+			
+			OUT_R[i_lower] = X_R[i] - temp_R;
+			OUT_I[i_lower] = X_I[i] - temp_I;
+			OUT_R[i] = X_R[i] + temp_R;
+			OUT_I[i] = X_I[i] + temp_I;
+		}
+	}
+}
+
+/*=======================END: FFT=========================*/
+</code></pre>
+<ul>
+<li>使用dataflow优化时候，不能同时读写一个函数的参数。否则会报错：Argument 'X_R' failed dataflow checking: Cannot read as well as write over function parameter.</li>
+<li>循环边界最好为常数，不然无法统计trip_count。</li>
+<li>设置内层II=1，最终结果是6212 CLK</li>
+</ul>
 ]]></content>
     </entry>
     <entry>
